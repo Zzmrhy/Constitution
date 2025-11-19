@@ -1,0 +1,34 @@
+<div>
+    <h1 id="header3">Punishments</h1>
+    <% if (isAdmin) { %>
+        <div style="margin-bottom: 20px;">
+            <h3 id='header2'>Admin Controls</h3>
+            <form action="/punishments" method="POST" style="display: inline;">
+                <input type="text" name="punishment" placeholder="Enter new punishment" style="margin-right: 10px;" required>
+                <input type="number" name="count" placeholder="Violation count" style="margin-right: 10px;" required>
+                <button id='btn' type="submit">Add Punishment</button>
+            </form>
+        </div>
+    <% } %>
+    <div style="margin-bottom: 20px;">
+        <h3 id='header2'>Suggest a New Punishment</h3>
+        <form action="/suggestions" method="POST" style="display: inline;">
+            <input type="hidden" name="type" value="punishment">
+            <input type="text" name="text" placeholder="Enter punishment suggestion" style="margin-right: 10px;" required>
+            <button id='btn' type="submit">Suggest</button>
+        </form>
+    </div>
+    <ul id="list">
+        <% if (punishments && punishments.length > 0) { %>
+            <% punishments.forEach((p) => { %>
+                <li><%= p.count %> violations: <%= p.punishment %></li>
+            <% }); %>
+        <% } else { %>
+            <h1>N/A</h1>
+        <% } %>
+    </ul>
+    <div>
+        <h1 id="header3">Amount Of Rules Broken: <%= totalBroken %></h1>
+        <h2 id='header3'>Current Punishment: <%= currentPunishment %></h2>
+    </div>
+</div>

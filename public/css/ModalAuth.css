@@ -1,0 +1,113 @@
+/* Modal Authentication Styling */
+
+.modal-content {
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-bottom: none;
+  padding: 20px 30px;
+  border-radius: 15px 15px 0 0;
+}
+
+.modal-header .btn-close {
+  filter: invert(1);
+}
+
+.modal-title {
+  font-weight: 600;
+  font-size: 24px;
+}
+
+.modal-body {
+  padding: 30px;
+  background: white;
+}
+
+.modal-form .form-group {
+  margin-bottom: 25px;
+}
+
+.modal-form .form-label {
+  display: block;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.modal-form .form-control {
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  padding: 12px 15px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  background-color: #f8f9fa;
+  color: #333;
+}
+
+.modal-form .form-control:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  background-color: white;
+}
+
+.modal-form .btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  width: 100%;
+  margin-top: 10px;
+}
+
+.modal-form .btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.modal-form .btn-primary:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.modal-form .alert {
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.modal-form .alert-danger {
+  background-color: #fee;
+  color: #c33;
+  border-left: 4px solid #c33;
+}
+
+/* Modal spacing from page edges */
+.auth-modal .modal-dialog {
+  margin: 20px auto;
+  max-width: calc(100vw - 240px);
+  margin-left: 1rem;
+  margin-right: 4rem;
+}
+
+/* Animation for modal entrance */
+.modal.fade .modal-dialog {
+  transition: transform 0.3s ease-out;
+  transform: translate(0, -50px);
+}
+
+.modal.show .modal-dialog {
+  transform: translate(0, 0);
+}

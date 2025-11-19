@@ -1,0 +1,29 @@
+[
+  {
+    "admin": true,
+    "Email": "aidenrathun@gmail.com",
+    "Password": "$2b$10$Eqfq9yZYQBmze2fIIPeJt.vg4tuUdcawdv.AA61GDS0F/VwIT1DKe"
+  },
+  {
+    "admin": true,
+    "Email": "prestonis2008@gmail.com",
+    "Password": "$2b$10$3y.jclc7KdxkP1kSqYKDcexX1cV1ekOJrivO4u70bPSF/thXZbg5e"
+  },
+  {
+    "admin": true,
+    "Email": "vkuhl0913@mtsd.org",
+    "Password": "$2b$10$Co2EWNfvIuD3OG2l7.sgwubgV0Gg/ik4gcLAA/Z7jBmCHrcMYqdMK"
+  },
+  {
+    "admin": false,
+    "subAdmin": false,
+    "Email": "bobert42@yahoo.com",
+    "Password": "$2b$10$ZXLUxNQqLo1JzancVVYZJOrAcS20pvdtWbCtzjPlfhfWNc4l5NRyq"
+  },
+  {
+    "admin": false,
+    "subAdmin": false,
+    "Email": "CMP_BeHedderman@students.ects.org",
+    "Password": "$2b$10$D5O2K/MX1HwCpTUG8CAZN.HebHgDPagLotQa6fDktuEukAHrQat6K"
+  }
+]

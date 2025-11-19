@@ -1,0 +1,58 @@
+<div>
+    <h1 id="header3">Violations List</h1>
+    <h2 id="pun">Total Violations: <%= totalBroken %></h2>
+    <% if (isAdmin) { %>
+        <div style="margin-bottom: 20px;">
+            <h3 id='header2'>Add New Violation</h3>
+            <form action="/violations" method="POST">
+                <label>Date: <input type="date" name="date" required></label><br>
+                <label>Broken Rules:
+                    <select name="brokenRules" multiple required>
+                        <% rules.forEach((rule) => { %>
+                            <option value="<%= rule %>"><%= rule %></option>
+                        <% }); %>
+                    </select>
+                </label><br>
+                <button id='btn' type="submit">Add Violation</button>
+            </form>
+        </div>
+    <% } %>
+    <% if (violations && violations.length > 0) { %>
+        <ul id="list">
+            <% violations.forEach((violation, index) => { %>
+                <li>
+                    <% if (editingIndex === index) { %>
+                        <form action="/violations/<%= index %>" method="POST">
+                            <input type="hidden" name="_method" value="PUT">
+                            <label>Date: <input type="date" name="date" value="<%= violation.date %>" required></label><br>
+                            <label>Broken Rules:
+                                <select name="brokenRules" multiple required>
+                                    <% rules.forEach((rule) => { %>
+                                        <option value="<%= rule %>" <%= violation.brokenRules.includes(rule) ? 'selected' : '' %>><%= rule %></option>
+                                    <% }); %>
+                                </select>
+                            </label><br>
+                            <button type="submit">Save</button>
+                            <a href="/violations"><button type="button">Cancel</button></a>
+                        </form>
+                    <% } else { %>
+                        <strong>Date:</strong> <%= violation.date %><br>
+                        <strong>Broken Rule:</strong>
+                        <% violation.brokenRules.forEach((rule) => { %>
+                            <div><%= rule %></div>
+                        <% }); %>
+                        <% if (isAdmin) { %>
+                            <a href="/violations?edit=<%= index %>"><button>Edit</button></a>
+                            <form action="/violations/<%= index %>" method="POST" style="display:inline;">
+                                <input type="hidden" name="_method" value="DELETE">
+                                <button type="submit" onclick="return confirm('Are you sure you want to delete this violation?')">Delete</button>
+                            </form>
+                        <% } %>
+                    <% } %>
+                </li>
+            <% }); %>
+        </ul>
+    <% } else { %>
+        <h1>No violations yet.</h1>
+    <% } %>
+</div>

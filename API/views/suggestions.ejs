@@ -1,0 +1,27 @@
+<div>
+    <h1 id='header3'>Suggestions</h1>
+    <% if (suggestions && suggestions.length > 0) { %>
+        <% suggestions.forEach((suggestion) => { %>
+            <div style="border: 1px solid #ccc; padding: 10px; margin-bottom: 10px;">
+                <h3><%= suggestion.type.toUpperCase() %>: <%= suggestion.text %></h3>
+                <p>Submitted by: <%= suggestion.submitter %></p>
+                <p>Approves: <%= suggestion.votes.approve.length %> | Rejects: <%= suggestion.votes.reject.length %></p>
+                <% if (isAdmin) { %>
+                    <form action="/suggestions/<%= suggestion.id %>/vote" method="POST" style="display: inline;">
+                        <input type="hidden" name="vote" value="approve">
+                        <button id='btn' type="submit">Approve</button>
+                    </form>
+                    <form action="/suggestions/<%= suggestion.id %>/vote" method="POST" style="display: inline;">
+                        <input type="hidden" name="vote" value="reject">
+                        <button id='btn' type="submit" style="margin-left: 10px;">Reject</button>
+                    </form>
+                    <form action="/suggestions/<%= suggestion.id %>/approve" method="POST" style="display: inline;">
+                        <button id='btn' type="submit" style="margin-left: 10px;">Add to List</button>
+                    </form>
+                <% } %>
+            </div>
+        <% }); %>
+    <% } else { %>
+        <h1>No suggestions yet</h1>
+    <% } %>
+</div>

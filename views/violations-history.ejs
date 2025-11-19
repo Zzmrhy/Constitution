@@ -1,0 +1,43 @@
+<div style="max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f8f9fa; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+    <h1 id="header3" style="text-align: center; color: #dc3545; margin-bottom: 30px;">Violations History</h1>
+    <% if (history && history.length > 0) { %>
+        <% history.forEach((entry, index) => { %>
+            <div style="margin-bottom: 20px; border: 1px solid #dee2e6; padding: 15px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <h3 style="color: #495057;">Archived on <%= new Date(entry.archivedAt).toLocaleString() %></h3>
+                <% if (entry.periodStart) { %>
+                    <p style="color: #6c757d;">Period: <%= new Date(entry.periodStart).toLocaleDateString() %> to <%= new Date(entry.archivedAt).toLocaleDateString() %></p>
+                <% } %>
+                <% if (entry.violations && entry.violations.length > 0) { %>
+                    <ul id="list" style="list-style: none; padding: 0;">
+                        <% entry.violations.forEach((violation) => { %>
+                            <li style="background-color: #f8d7da; margin-bottom: 10px; padding: 10px; border-radius: 5px; border-left: 4px solid #dc3545;">
+                                <strong style="color: #721c24;">Date:</strong> <%= violation.date %><br>
+                                <strong style="color: #721c24;">Broken Rules:</strong>
+                                <ul style="margin-top: 5px;">
+                                    <% if (Array.isArray(violation.brokenRules)) { %>
+                                        <% violation.brokenRules.forEach((rule) => { %>
+                                            <li style="color: #721c24;"><%= rule %></li>
+                                        <% }); %>
+                                    <% } else { %>
+                                        <li style="color: #721c24;">No rules listed</li>
+                                    <% } %>
+                                </ul>
+                            </li>
+                        <% }); %>
+                    </ul>
+                <% } else { %>
+                    <p style="color: #6c757d;">No violations in this period.</p>
+                <% } %>
+            </div>
+        <% }); %>
+    <% } else { %>
+        <h1 style="text-align: center; color: #6c757d;">No violations history yet.</h1>
+    <% } %>
+</div>
+
+<script>
+    function toggleWeek(week) {
+        const element = document.getElementById('week-' + week);
+        element.style.display = element.style.display === 'none' ? 'block' : 'none';
+    }
+</script>

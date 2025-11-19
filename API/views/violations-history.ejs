@@ -1,0 +1,44 @@
+<div>
+    <h1 id="header3">Violations History</h1>
+    <% if (history && Object.keys(history).length > 0) { %>
+        <% Object.keys(history).sort((a, b) => new Date(b) - new Date(a)).forEach((week) => { %>
+            <div style="margin-bottom: 10px;">
+                <button onclick="toggleWeek('<%= week %>')" style="padding: 10px; background-color: #f8f9fa; border: 1px solid #ccc; cursor: pointer; width: 100%; text-align: left;">
+                    Week of <%= new Date(week).toLocaleDateString() %> - <%= history[week].length %> violations
+                </button>
+                <div id="week-<%= week %>" style="display: none; margin-top: 10px; padding: 10px; border: 1px solid #ccc;">
+                    <% if (Array.isArray(history[week])) { %>
+                        <ul id="list">
+                            <% history[week].forEach((violation, index) => { %>
+                                <li>
+                                    <strong>Date:</strong> <%= violation.date %><br>
+                                    <strong>Broken Rules:</strong>
+                                    <ul>
+                                        <% if (Array.isArray(violation.brokenRules)) { %>
+                                            <% violation.brokenRules.forEach((rule) => { %>
+                                                <li><%= rule %></li>
+                                            <% }); %>
+                                        <% } else { %>
+                                            <li>No rules listed</li>
+                                        <% } %>
+                                    </ul>
+                                </li>
+                            <% }); %>
+                        </ul>
+                    <% } else { %>
+                        <p>Error: Invalid data for this week.</p>
+                    <% } %>
+                </div>
+            </div>
+        <% }); %>
+    <% } else { %>
+        <h1>No violations history yet.</h1>
+    <% } %>
+</div>
+
+<script>
+    function toggleWeek(week) {
+        const element = document.getElementById('week-' + week);
+        element.style.display = element.style.display === 'none' ? 'block' : 'none';
+    }
+</script>

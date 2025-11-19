@@ -1,0 +1,41 @@
+<div>
+    <h1 id='header3'>Here Is The List Of Our Rules For Ben</h1>
+    <% if (isAdmin) { %>
+        <div style="margin-bottom: 20px;">
+            <h3 id='header2'>Admin Controls</h3>
+            <form action="/rules" method="POST" style="display: inline;">
+                <input type="text" name="rule" placeholder="Enter new rule" style="margin-right: 10px;" required>
+                <button id='btn' type="submit">Add Rule</button>
+            </form>
+        </div>
+    <% } %>
+    <div style="margin-bottom: 20px;">
+        <h3 id='header2'>Suggest a New Rule</h3>
+        <form action="/suggestions" method="POST" style="display: inline;">
+            <input type="hidden" name="type" value="rule">
+            <input type="text" name="text" placeholder="Enter rule suggestion" style="margin-right: 10px;" required>
+            <button id='btn' type="submit">Suggest</button>
+        </form>
+    </div>
+    <ul id="list">
+        <% if (rules && rules.length > 0) { %>
+            <% rules.forEach((rule, index) => { %>
+                <li style="display: flex; justify-content: space-between; align-items: center;">
+                    <span><%= rule %></span>
+                    <% if (isAdmin) { %>
+                        <form action="/rules/<%= encodeURIComponent(rule) %>" method="POST" style="display: inline;">
+                            <input type="hidden" name="_method" value="DELETE">
+                            <button id='btn' type="submit">Remove</button>
+                        </form>
+                    <% } %>
+                </li>
+            <% }); %>
+        <% } else { %>
+            <h1>N/A</h1>
+        <% } %>
+    </ul>
+    <div>
+        <h1 id="header3">Amount Of Rules Broken: <%= totalBroken %></h1>
+        <h2 id='header3'>Current Punishment: <%= currentPunishment %></h2>
+    </div>
+</div>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Department Of Ben Affairs</title>
+    <link rel="stylesheet" href="/css/index.css">
+    <link rel="stylesheet" href="/css/App.css">
+    <link rel="stylesheet" href="/css/NavBar.css">
+    <link rel="stylesheet" href="/css/ModalAuth.css">
+    <link rel="stylesheet" href="/css/Auth.css">
+    <link rel="stylesheet" href="/css/Captcha.css">
+    <link rel="stylesheet" href="/css/Punishments.css">
+    <link rel="stylesheet" href="/css/RuleAdder.css">
+</head>
+<body>
+    <div class="container">
+        <div id="h">
+            <img src="/images/DOBA.png" alt="logo" width="220px" />
+            <h1 id="header">Welcome To The Department Of Ben Affairs</h1>
+        </div>
+        <h1>-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</h1>
+        <main>
+            <nav>
+                <div><a href="/do" id="nav">What We Do</a></div>
+                <div><a href="/rules" id="nav">Rules For Ben</a></div>
+                <div><a href="/violations" id="nav">Violations</a></div>
+                <div><a href="/violations-history" id="nav">Violations History</a></div>
+                <div><a href="/punishments" id="nav">Punishments For Ben</a></div>
+                <div><a href="/suggestions" id="nav">Suggestions</a></div>
+            </nav>
+
+            <% if (!user) { %>
+                <div style="padding: 12px;">
+                    <button onclick="showSignIn()">Sign In</button>
+                    <button onclick="showSignUp()" style="margin-left: 8px;">Sign Up</button>
+                </div>
+            <% } else { %>
+                <div style="padding: 12px;">
+                    <span>Welcome, <%= user.email %></span>
+                    <form action="/signout" method="POST" style="display: inline; margin-left: 8px;">
+                        <button type="submit">Sign Out</button>
+                    </form>
+                </div>
+            <% } %>
+
+            <!-- Auth Modals (simplified) -->
+            <div id="signin-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px;">
+                    <h3>Sign In</h3>
+                    <form action="/signin" method="POST">
+                        <input type="email" name="email" placeholder="Email" required><br>
+                        <input type="password" name="password" placeholder="Password" required><br>
+                        <button type="submit">Sign In</button>
+                        <button type="button" onclick="hideSignIn()">Cancel</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="signup-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px;">
+                    <h3>Sign Up</h3>
+                    <form action="/signup" method="POST">
+                        <input type="email" name="email" placeholder="Email" required><br>
+                        <input type="password" name="password" placeholder="Password" required><br>
+                        <button type="submit">Sign Up</button>
+                        <button type="button" onclick="hideSignUp()">Cancel</button>
+                    </form>
+                </div>
+            </div>
+
+            <% if (user) { %>
+                <div class="fade-page">
+                    <%- body %>
+                </div>
+            <% } else { %>
+                <%- body %>
+            <% } %>
+        </main>
+    </div>
+
+    <script>
+        function showSignIn() {
+            document.getElementById('signin-modal').style.display = 'block';
+        }
+        function hideSignIn() {
+            document.getElementById('signin-modal').style.display = 'none';
+        }
+        function showSignUp() {
+            document.getElementById('signup-modal').style.display = 'block';
+        }
+        function hideSignUp() {
+            document.getElementById('signup-modal').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

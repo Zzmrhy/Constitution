@@ -1,0 +1,119 @@
+.container {
+  width: 90%;
+  margin: auto;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: #04c97d;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  margin: 5px;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+#pun {
+  font-size: 3rem;
+  color: red;
+}
+
+#header {
+  font-size: 5rem;
+  background-image: linear-gradient(45deg, red, white, blue);
+  padding-right: 1rem;
+  padding-left: 1rem;
+  padding-top: 0.2rem;
+  text-shadow: #000000 5px 5px;
+}
+
+#header2 {
+  font-size: 3.5rem;
+  color: cyan;
+}
+
+#header3 {
+  font-size: 3.5rem;
+  color: gold;
+}
+
+#list {
+  font-size: 1.5rem;
+  list-style-type: circle;
+  color: cyan;
+}
+
+img {
+  padding-top: 1.2rem;
+  padding-left: 2rem;
+  padding-right: 9.5rem;
+}
+
+#h {
+  display: flex;
+}
+
+.fade-page {
+  animation: fadeIn 420ms ease-in;
+  will-change: opacity, transform;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-page {
+    animation: none;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  #header {
+    font-size: 5rem;
+    color: darkred;
+  }
+
+  #header2 {
+    font-size: 4.5rem;
+    color: darkcyan;
+  }
+
+  #header3 {
+    font-size: 3.5rem;
+    color: goldenrod;
+  }
+
+  #list {
+    font-size: 3.5rem;
+    list-style-type: circle;
+    color: darkcyan;
+  }
+
+  .fade-page {
+    animation: fadeIn 420ms ease-in;
+    will-change: opacity, transform;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}

@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Department Of Ben Affairs</title>
+    <link rel="stylesheet" href="/css/index.css">
+    <link rel="stylesheet" href="/css/App.css">
+    <link rel="stylesheet" href="/css/NavBar.css">
+    <link rel="stylesheet" href="/css/ModalAuth.css">
+    <link rel="stylesheet" href="/css/Auth.css">
+    <link rel="stylesheet" href="/css/Captcha.css">
+    <link rel="stylesheet" href="/css/Punishments.css">
+    <link rel="stylesheet" href="/css/RuleAdder.css">
+</head>
+<body>
+    <div class="container">
+        <div id="h">
+            <img src="/images/DOBA.png" alt="logo" width="220px" />
+            <h1 id="header">Welcome To The Department Of Ben Affairs</h1>
+        </div>
+        <h1>-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</h1>
+        <main>
+            <nav>
+                <div><a href="/do" id="nav">What We Do</a></div>
+                <div><a href="/rules" id="nav">Rules For Ben</a></div>
+                <div><a href="/violations" id="nav">Violations</a></div>
+                <div><a href="/violations-history" id="nav">Violations History</a></div>
+                <div><a href="/punishments" id="nav">Punishments For Ben</a></div>
+                <div><a href="/suggestions" id="nav">Suggestions</a></div>
+            </nav>
+
+            <% if (!user) { %>
+                <div style="padding: 12px;">
+                    <button onclick="showSignIn()">Sign In</button>
+                    <button onclick="showSignUp()" style="margin-left: 8px;">Sign Up</button>
+                </div>
+            <% } else { %>
+                <div style="padding: 12px;">
+                    <span>Welcome, <%= user.Email %></span>
+                    <button onclick="signOut()" style="margin-left: 8px;">Sign Out</button>
+                </div>
+            <% } %>
+
+            <!-- Auth Modals (simplified) -->
+            <div id="signin-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px;">
+                    <h3>Sign In</h3>
+                    <div id="signin-error" style="color: red; display: none;"></div>
+                    <form id="signin-form">
+                        <input type="email" id="signin-email" placeholder="Email" required><br>
+                        <input type="password" id="signin-password" placeholder="Password" required><br>
+                        <button type="submit">Sign In</button>
+                        <button type="button" onclick="hideSignIn()">Cancel</button>
+                    </form>
+                </div>
+            </div>
+
+            <div id="signup-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px;">
+                    <h3>Sign Up</h3>
+                    <div id="signup-error" style="color: red; display: none;"></div>
+                    <form id="signup-form">
+                        <input type="email" id="signup-email" placeholder="Email" required><br>
+                        <input type="password" id="signup-password" placeholder="Password" required><br>
+                        <button type="submit">Sign Up</button>
+                        <button type="button" onclick="hideSignUp()">Cancel</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Captcha Modal -->
+            <div id="captcha-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 8px; text-align: center;">
+                    <h3>CAPTCHA Verification Required</h3>
+                    <p>You must complete the CAPTCHA to proceed.</p>
+                    <button onclick="window.location.href='/captcha'">Go to CAPTCHA</button>
+                    <button onclick="hideCaptcha()">Cancel</button>
+                </div>
+            </div>
+
+            <% if (user) { %>
+                <div class="fade-page">
+                    <% if (title === 'Home') { %>
+                        <%- include('home') %>
+                    <% } else if (title === 'What We Do') { %>
+                        <%- include('do') %>
+                    <% } else if (title === 'Rules') { %>
+                        <%- include('rules') %>
+                    <% } else if (title === 'Punishments') { %>
+                        <%- include('punishments') %>
+                    <% } else if (title === 'Violations') { %>
+                        <%- include('violations') %>
+                    <% } else if (title === 'Violations History') { %>
+                        <%- include('violations-history') %>
+                    <% } else if (title === 'Suggestions') { %>
+                        <%- include('suggestions') %>
+                    <% } %>
+                </div>
+            <% } else { %>
+                <% if (title === 'Home') { %>
+                    <%- include('home') %>
+                <% } else if (title === 'What We Do') { %>
+                    <%- include('do') %>
+                <% } else if (title === 'Rules') { %>
+                    <%- include('rules') %>
+                <% } else if (title === 'Punishments') { %>
+                    <%- include('punishments') %>
+                <% } else if (title === 'Violations') { %>
+                    <%- include('violations') %>
+                <% } else if (title === 'Violations History') { %>
+                    <%- include('violations-history') %>
+                <% } else if (title === 'Suggestions') { %>
+                    <%- include('suggestions') %>
+                <% } %>
+            <% } %>
+        </main>
+    </div>
+
+    <script>
+        function showSignIn() {
+            document.getElementById('signin-modal').style.display = 'block';
+            document.getElementById('signin-error').style.display = 'none';
+        }
+        function hideSignIn() {
+            document.getElementById('signin-modal').style.display = 'none';
+        }
+        function showSignUp() {
+            document.getElementById('signup-modal').style.display = 'block';
+        }
+        function hideSignUp() {
+            document.getElementById('signup-modal').style.display = 'none';
+        }
+        function showCaptcha() {
+            document.getElementById('captcha-modal').style.display = 'block';
+        }
+        function hideCaptcha() {
+            document.getElementById('captcha-modal').style.display = 'none';
+        }
+
+        document.getElementById('signin-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('signin-email').value;
+            const password = document.getElementById('signin-password').value;
+            try {
+                const response = await fetch('/api/signin', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.captchaRequired) {
+                        showCaptcha();
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    const data = await response.json();
+                    document.getElementById('signin-error').textContent = data.error || 'Sign in failed';
+                    document.getElementById('signin-error').style.display = 'block';
+                }
+            } catch (err) {
+                document.getElementById('signin-error').textContent = 'Network error';
+                document.getElementById('signin-error').style.display = 'block';
+            }
+        });
+
+        document.getElementById('signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            try {
+                const response = await fetch('/api/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const data = await response.json();
+                    document.getElementById('signup-error').textContent = data.error || 'Sign up failed';
+                    document.getElementById('signup-error').style.display = 'block';
+                }
+            } catch (err) {
+                document.getElementById('signup-error').textContent = 'Network error';
+                document.getElementById('signup-error').style.display = 'block';
+            }
+        });
+
+        async function signOut() {
+            try {
+                await fetch('/signout', { method: 'POST' });
+            } catch (err) {
+                console.error('Signout error:', err);
+            }
+            window.location.href = '/';
+        }
+    </script>
+</body>
+</html>

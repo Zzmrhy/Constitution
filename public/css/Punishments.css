@@ -1,0 +1,11 @@
+#punishment {
+    font-size: 1.5rem;
+    list-style-type: circle;
+    color: red;
+}
+
+#broken {
+    font-size: 1.5rem;
+    list-style-type: circle;
+    color: cyan;
+}
