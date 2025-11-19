@@ -27,7 +27,9 @@
                 <div><a href="/violations" id="nav">Violations</a></div>
                 <div><a href="/violations-history" id="nav">Violations History</a></div>
                 <div><a href="/punishments" id="nav">Punishments For Ben</a></div>
+                <% if (user && !user.admin) { %>
                 <div><a href="/suggestions" id="nav">Suggestions</a></div>
+                <% } %>
             </nav>
 
             <% if (!user) { %>

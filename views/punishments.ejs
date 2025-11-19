@@ -10,14 +10,16 @@
             </form>
         </div>
     <% } %>
-    <div style="background-color: #d1ecf1; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #17a2b8;">
-        <h3 id='header2' style="color: #0c5460; margin-bottom: 10px;">Suggest a New Punishment</h3>
-        <form action="/suggestions" method="POST" style="display: inline-block;">
-            <input type="hidden" name="type" value="punishment">
-            <input type="text" name="text" placeholder="Enter punishment suggestion" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-right: 10px;" required>
-            <button id='btn' type="submit" style="background-color: #17a2b8; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Suggest</button>
-        </form>
-    </div>
+    <% if (!isAdmin) { %>
+        <div style="background-color: #d1ecf1; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #17a2b8;">
+            <h3 id='header2' style="color: #0c5460; margin-bottom: 10px;">Suggest a New Punishment</h3>
+            <form action="/suggestions" method="POST" style="display: inline-block;">
+                <input type="hidden" name="type" value="punishment">
+                <input type="text" name="text" placeholder="Enter punishment suggestion" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-right: 10px;" required>
+                <button id='btn' type="submit" style="background-color: #17a2b8; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Suggest</button>
+            </form>
+        </div>
+    <% } %>
     <ul id="list" style="list-style: none; padding: 0; margin-bottom: 30px;">
         <% if (punishments && punishments.length > 0) { %>
             <% punishments.forEach((p) => { %>

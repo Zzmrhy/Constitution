@@ -1,63 +1,43 @@
-<div style="max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f9f9f9; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-    <h1 id='header3' style="text-align: center; color: #333; margin-bottom: 30px;">Here Is The List Of Our Rules For Ben</h1>
-
+<div style="max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f8f9fa; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+    <h1 id="header3" style="text-align: center; color: #17a2b8; margin-bottom: 30px;">Rules For Ben</h1>
     <% if (isAdmin) { %>
         <div style="background-color: #e8f4fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #007bff;">
             <h3 id='header2' style="color: #007bff; margin-bottom: 10px;">Admin Controls</h3>
-            <form action="/api/rules" method="POST" style="display: inline-block; margin-right: 10px;">
-                <input type="hidden" name="redirect" value="/rules">
+            <form action="/rules" method="POST" style="display: inline-block;">
                 <input type="text" name="rule" placeholder="Enter new rule" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-right: 10px;" required>
-                <button id='btn' type="submit" style="background-color: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Add Rule</button>
+                <button id='btn' type="submit" style="background-color: #007bff; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Add Rule</button>
             </form>
         </div>
     <% } %>
-
-    <% if (isAdmin) { %>
-        <div style="background-color: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #ffc107;">
-            <h3 id='header2' style="color: #856404; margin-bottom: 10px;">Add New Violation</h3>
-            <form action="/violations" method="POST" style="display: flex; flex-direction: column; gap: 10px;">
-                <label style="font-weight: bold; color: black;">Date: <input type="date" name="date" required style="padding: 8px; border: 1px solid #ccc; border-radius: 4px;"></label>
-                <label style="font-weight: bold; color: black;">Broken Rules:
-                    <select name="brokenRules" multiple required style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; min-height: 100px;">
-                        <% rules.forEach((rule) => { %>
-                            <option value="<%= rule %>"><%= rule %></option>
-                        <% }); %>
-                    </select>
-                </label>
-                <button id='btn' type="submit" style="background-color: #dc3545; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; align-self: flex-start;">Add Violation</button>
+    <% if (!isAdmin) { %>
+        <div style="background-color: #d1ecf1; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #17a2b8;">
+            <h3 id='header2' style="color: #0c5460; margin-bottom: 10px;">Suggest a New Rule</h3>
+            <form action="/suggestions" method="POST" style="display: inline-block;">
+                <input type="hidden" name="type" value="rule">
+                <input type="text" name="text" placeholder="Enter rule suggestion" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-right: 10px;" required>
+                <button id='btn' type="submit" style="background-color: #17a2b8; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Suggest</button>
             </form>
         </div>
     <% } %>
-
-    <div style="background-color: #d1ecf1; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #17a2b8;">
-        <h3 id='header2' style="color: #0c5460; margin-bottom: 10px;">Suggest a New Rule</h3>
-        <form action="/suggestions" method="POST" style="display: inline-block;">
-            <input type="hidden" name="type" value="rule">
-            <input type="text" name="text" placeholder="Enter rule suggestion" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-right: 10px;" required>
-            <button id='btn' type="submit" style="background-color: #6c757d; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Suggest</button>
-        </form>
-    </div>
-
-    <ul id="list" style="list-style: none; padding: 0;">
+    <ul id="list" style="list-style: none; padding: 0; margin-bottom: 30px;">
         <% if (rules && rules.length > 0) { %>
             <% rules.forEach((rule, index) => { %>
-                <li style="background-color: white; margin-bottom: 10px; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 16px; color: #333;"><%= rule %></span>
+                <li style="background-color: white; margin-bottom: 10px; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); color: #495057;">
+                    <%= rule %>
                     <% if (isAdmin) { %>
-                        <form action="/api/rules" method="POST" style="display: inline;">
+                        <form action="/rules" method="POST" style="display: inline-block; margin-left: 10px;">
                             <input type="hidden" name="_method" value="DELETE">
                             <input type="hidden" name="rule" value="<%= rule %>">
-                            <button id='btn' type="submit" style="background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Remove</button>
+                            <button id='btn' type="submit" style="background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Delete</button>
                         </form>
                     <% } %>
                 </li>
             <% }); %>
         <% } else { %>
-            <li style="background-color: white; padding: 20px; border-radius: 8px; text-align: center; color: #666;">No rules available.</li>
+            <h1 style="text-align: center; color: #6c757d;">N/A</h1>
         <% } %>
     </ul>
-
-    <div style="background-color: #f8d7da; padding: 20px; border-radius: 8px; margin-top: 30px; border-left: 5px solid #dc3545;">
+    <div style="background-color: #f8d7da; padding: 20px; border-radius: 8px; border-left: 5px solid #dc3545;">
         <h1 id="header3" style="color: #721c24; margin-bottom: 10px;">Amount Of Rules Broken: <%= totalBroken %></h1>
         <h2 id='header3' style="color: #721c24;">Current Punishment: <%= currentPunishment ? currentPunishment.punishment : 'None' %></h2>
     </div>

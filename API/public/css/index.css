@@ -35,6 +35,144 @@ h1 {
   line-height: 1.1;
 }
 
+/* Violations page specific styles */
+.violations-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.violations-header {
+  text-align: center;
+  color: #17a2b8;
+  margin-bottom: 30px;
+}
+
+.violations-total {
+  text-align: center;
+  font-size: 2rem;
+  color: #dc3545;
+  margin-bottom: 30px;
+}
+
+.add-violation-form {
+  background-color: white;
+  border: 1px solid #dee2e6;
+  padding: 20px;
+  margin-bottom: 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.add-violation-form h3 {
+  color: #495057;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #495057;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #80bdff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.violations-list {
+  list-style-type: none;
+  padding: 0;
+}
+
+.violations-list li {
+  background-color: white;
+  border: 1px solid #dee2e6;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.violation-item strong {
+  color: #495057;
+}
+
+.violation-item div {
+  margin-top: 5px;
+  color: #6c757d;
+}
+
+.edit-form {
+  margin-top: 10px;
+}
+
+.edit-form .form-group {
+  margin-bottom: 10px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-right: 5px;
+  transition: background-color 0.3s;
+}
+
+.btn-primary {
+  background-color: #007bff;
+  color: white;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-secondary:hover {
+  background-color: #545b62;
+}
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #c82333;
+}
+
+.no-violations {
+  text-align: center;
+  color: #6c757d;
+  font-size: 1.2rem;
+}
+
 /* button {
   border-radius: 8px;
   border: 1px solid transparent;

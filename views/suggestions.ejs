@@ -26,8 +26,8 @@
                 <% if (suggestion.votes.reject.length > 0) { %>
                     <p style="color: #dc3545;">Rejected by: <%= suggestion.votes.reject.join(', ') %></p>
                 <% } %>
-                <!-- Voting buttons for admins and sub-admins -->
-                <% if (isAdmin || isSubAdmin) { %>
+                <!-- Voting buttons for sub-admins and the submitter -->
+                <% if (!isAdmin && (isSubAdmin || suggestion.submittedBy === user.Email)) { %>
                     <form class="vote-form" data-id="<%= suggestion.id %>" style="display: inline;">
                         <input type="hidden" name="vote" value="approve">
                         <button type="submit" id='btn' style="background-color: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Approve</button>

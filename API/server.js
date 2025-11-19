@@ -19,7 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // Serve static files from the public directory (if exists)
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Set view engine to EJS
 app.engine('ejs', ejsMate);
@@ -43,12 +43,12 @@ let punishments = [
   { min: 15, max: 19, punishment: "We Call Michael's Mother To Have Her Give Ben A Spanking" },
   { min: 20, max: 24, punishment: "Tony Is Allowed To Beat Ben With His Shoe" },
   { min: 25, max: 29, punishment: "Ben Loses A Card" },
-  { min: 30, max: 34, punishment: "Vince Gives Ben A Spanking" },
+  { min: 30, max: 34, punishment: "Vince Gives Ben A Whipping With His Belt" },
   { min: 35, max: 39, punishment: "Mr. Klins Can Throw Ben Through The Door" },
   { min: 40, max: 44, punishment: "Ball" },
   { min: 45, max: 49, punishment: "Logan May Stone Ben" },
   { min: 50, max: 54, punishment: "Ben Is Locked Inside Networking" },
-  { min: 55, max: 99, punishment: "The rest will be thought out at a later day" },
+  { min: 55, max: 99, punishment: "Ben Will Be Forced To Restart His Entire Project" },
   { min: 100, max: Infinity, punishment: "1941 Will Be Caused By Yours Truly" }
 ];
 
@@ -216,7 +216,7 @@ function saveSuggestions() {
 
 const SALT_ROUNDS = 10;
 
-const PORT = 5000;
+const PORT = 4000;
 
 // Routes for rendering EJS views (moved to top to avoid conflict with API routes)
 app.get('/', (req, res) => {
@@ -240,10 +240,11 @@ app.get('/violations', (req, res) => {
     if (!payload) return res.redirect('/');
     const user = payload;
     const isAdmin = payload && payload.admin;
+    const isSubAdmin = payload && payload.subAdmin;
     const totalBroken = violations.reduce((sum, v) => sum + v.brokenRules.length, 0);
     const currentPunishment = getCurrentPunishment(totalBroken);
     const editingIndex = req.query.edit ? parseInt(req.query.edit) : null;
-    res.render('layout', { title: 'Violations', violations, totalBroken, currentPunishment, user, isAdmin, rules, editingIndex });
+    res.render('layout', { title: 'Violations', violations, totalBroken, currentPunishment, user, isAdmin, isSubAdmin, rules, editingIndex });
 });
 
 app.get('/punishments', (req, res) => {

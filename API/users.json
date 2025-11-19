@@ -15,15 +15,15 @@
     "Password": "$2b$10$Co2EWNfvIuD3OG2l7.sgwubgV0Gg/ik4gcLAA/Z7jBmCHrcMYqdMK"
   },
   {
+    "Email": "CMP_BeHedderman@students.ects.org",
+    "Password": "$2a$10$examplehashedpassword",
     "admin": false,
-    "subAdmin": false,
-    "Email": "bobert42@yahoo.com",
-    "Password": "$2b$10$ZXLUxNQqLo1JzancVVYZJOrAcS20pvdtWbCtzjPlfhfWNc4l5NRyq"
+    "subAdmin": false
   },
   {
     "admin": false,
     "subAdmin": false,
-    "Email": "CMP_BeHedderman@students.ects.org",
-    "Password": "$2b$10$D5O2K/MX1HwCpTUG8CAZN.HebHgDPagLotQa6fDktuEukAHrQat6K"
+    "Email": "aiden.rathbun07@yahoo.com",
+    "Password": "$2b$10$z1WA5tNFdEpiUohtiyKQzO7LcWGzI6x1b6HWlGj5s0lAJ8xzlTevu"
   }
 ]

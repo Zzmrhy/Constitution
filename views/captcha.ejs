@@ -3,66 +3,136 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><%= title %></title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .captcha-container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            text-align: center;
-            max-width: 400px;
-            width: 100%;
-        }
-        .captcha-text {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #dc3545;
-        }
-        .captcha-input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 16px;
-        }
-        .captcha-button {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .captcha-button:hover {
-            background-color: #218838;
-        }
-    </style>
+    <title><%= title %> - Department Of Ben Affairs</title>
+    <link rel="stylesheet" href="/css/index.css">
+    <link rel="stylesheet" href="/css/App.css">
+    <link rel="stylesheet" href="/css/NavBar.css">
+    <link rel="stylesheet" href="/css/ModalAuth.css">
+    <link rel="stylesheet" href="/css/Auth.css">
+    <link rel="stylesheet" href="/css/Captcha.css">
+    <link rel="stylesheet" href="/css/Punishments.css">
+    <link rel="stylesheet" href="/css/RuleAdder.css">
 </head>
 <body>
-    <div class="captcha-container">
-        <h1>CAPTCHA Verification</h1>
-        <p>Please solve the following CAPTCHA:</p>
-        <div class="captcha-text">What is 2 + 2?</div>
-        <% if (error) { %>
-            <p style="color: red;"><%= error %></p>
-        <% } %>
-        <form action="/verify-captcha" method="POST">
-            <input type="text" name="answer" class="captcha-input" placeholder="Enter your answer" required>
-            <button type="submit" class="captcha-button">Submit</button>
-        </form>
+    <div class="container">
+        <div id="h">
+            <img src="/images/DOBA.png" alt="logo" width="220px" />
+            <h1 id="header">Welcome To The Department Of Ben Affairs</h1>
+        </div>
+        <main>
+            <nav>
+                <div><a href="/do" id="nav">What We Do</a></div>
+                <div><a href="/rules" id="nav">Rules For Ben</a></div>
+                <div><a href="/violations" id="nav">Violations</a></div>
+                <div><a href="/violations-history" id="nav">Violations History</a></div>
+                <div><a href="/punishments" id="nav">Punishments For Ben</a></div>
+                <div><a href="/suggestions" id="nav">Suggestions</a></div>
+            </nav>
+
+            <div style="text-align: center; margin: 20px;">
+                <h2>CAPTCHA Verification</h2>
+                <p>Please complete the CAPTCHA to continue.</p>
+                <div id="captcha-container">
+                    <!-- CAPTCHA content will be inserted here -->
+                </div>
+                <button id="verify-btn" style="margin-top: 20px;">Verify</button>
+            </div>
+        </main>
     </div>
+    <script>
+        // Absurd CAPTCHA logic with multiple questions and 13% chance for Michael's Mom
+        const captchaContainer = document.getElementById('captcha-container');
+        const verifyBtn = document.getElementById('verify-btn');
+
+        const questions = [
+            {
+                question: "Who is the coolest person?",
+                options: ["Ben", "Tony", "Logan", "Pizza"]
+            },
+            {
+                question: "What is the best food?",
+                options: ["Pizza", "Ice Cream", "Burgers", "Tacos"]
+            },
+            {
+                question: "Who should be punished next?",
+                options: ["Ben", "Tony", "Logan", "Vince"]
+            },
+            {
+                question: "What is the meaning of life?",
+                options: ["42", "Money", "Love", "Happiness"]
+            },
+            {
+                question: "Who is the real boss here?",
+                options: ["The Admin", "Ben", "The Constitution", "Nobody"]
+            }
+        ];
+
+        const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
+        let options = [...randomQuestion.options];
+        if (Math.random() < 0.13) {
+            options[Math.floor(Math.random() * options.length)] = "Michael's Mom";
+        }
+        captchaContainer.innerHTML = `
+            <p>${randomQuestion.question}</p>
+            ${options.map(option => `<label><input type="radio" name="answer" value="${option}"> ${option}</label><br>`).join('')}
+        `;
+
+        // Invisible skip button: small random div, impossible to find, no hover, not in dev tools easily
+        const skipBtn = document.createElement('div');
+        skipBtn.style.position = 'absolute';
+        skipBtn.style.width = '5px';
+        skipBtn.style.height = '5px';
+        skipBtn.style.opacity = '0';
+        skipBtn.style.cursor = 'default';
+        skipBtn.style.pointerEvents = 'none'; // Initially disabled
+        skipBtn.style.zIndex = '-1'; // Behind everything
+        // Random position
+        const maxX = window.innerWidth - 5;
+        const maxY = window.innerHeight - 5;
+        skipBtn.style.left = Math.floor(Math.random() * maxX) + 'px';
+        skipBtn.style.top = Math.floor(Math.random() * maxY) + 'px';
+        document.body.appendChild(skipBtn);
+
+        let clickCount = 0;
+        const requiredClicks = Math.floor(Math.random() * 20) + 1; // 1 to 20
+
+        // Enable pointer events after a random delay to make it "appear"
+        setTimeout(() => {
+            skipBtn.style.pointerEvents = 'auto';
+            skipBtn.style.zIndex = '9999'; // Bring to front
+        }, Math.floor(Math.random() * 10000) + 5000); // 5-15 seconds
+
+        skipBtn.addEventListener('click', () => {
+            clickCount++;
+            if (clickCount >= requiredClicks) {
+                window.location.href = '/';
+            }
+            // Move to new random position after each click
+            skipBtn.style.left = Math.floor(Math.random() * maxX) + 'px';
+            skipBtn.style.top = Math.floor(Math.random() * maxY) + 'px';
+        });
+
+        verifyBtn.addEventListener('click', () => {
+            const selected = document.querySelector('input[name="answer"]:checked');
+            if (!selected) {
+                alert('Please select an answer.');
+                return;
+            }
+            if (selected.value === "Michael's Mom") {
+                // Show image for 50 seconds, then continue with new question
+                document.body.innerHTML = `
+                    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 1000; display: flex; justify-content: center; align-items: center;">
+                        <img src="/images/Michael.png" alt="Michael" style="max-width: 100%; max-height: 100%;">
+                    </div>
+                `;
+                setTimeout(() => {
+                    location.reload();
+                }, 50000);
+            } else {
+                alert('CAPTCHA verified! You can now access the site.');
+                window.location.href = '/';
+            }
+        });
+    </script>
 </body>
 </html>
