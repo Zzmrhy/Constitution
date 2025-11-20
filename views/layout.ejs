@@ -15,11 +15,10 @@
 </head>
 <body>
     <div class="container">
-        <div id="h">
-            <img src="/images/DOBA.png" alt="logo" width="220px" />
-            <h1 id="header">Welcome To The Department Of Ben Affairs</h1>
+        <div id="h" class="header-section" style="text-align: center; padding: 20px; background: linear-gradient(135deg, #007bff, #28a745); border-radius: 15px; margin: 10px; color: white; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+            <img src="/images/doba.png" alt="Department of Ben Affairs" style="width: 200px; height: auto; margin-bottom: 10px; border-radius: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+            <h1 id="header" style="color: white; font-size: 2.5em; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">Welcome To The Department Of Ben Affairs</h1>
         </div>
-        <h1>-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</h1>
         <main>
             <nav>
                 <div><a href="/do" id="nav">What We Do</a></div>
@@ -27,7 +26,7 @@
                 <div><a href="/violations" id="nav">Violations</a></div>
                 <div><a href="/violations-history" id="nav">Violations History</a></div>
                 <div><a href="/punishments" id="nav">Punishments For Ben</a></div>
-                <% if (user && !user.admin) { %>
+                <% if (user) { %>
                 <div><a href="/suggestions" id="nav">Suggestions</a></div>
                 <% } %>
             </nav>
@@ -39,7 +38,7 @@
                 </div>
             <% } else { %>
                 <div style="padding: 12px;">
-                    <span>Welcome, <%= user.Email %></span>
+                    <span class="welcome-span">Welcome, <%= user.username %></span>
                     <button onclick="signOut()" style="margin-left: 8px;">Sign Out</button>
                 </div>
             <% } %>
@@ -63,6 +62,7 @@
                     <h3>Sign Up</h3>
                     <div id="signup-error" style="color: red; display: none;"></div>
                     <form id="signup-form">
+                        <input type="text" id="signup-username" placeholder="Username" required><br>
                         <input type="email" id="signup-email" placeholder="Email" required><br>
                         <input type="password" id="signup-password" placeholder="Password" required><br>
                         <button type="submit">Sign Up</button>
@@ -170,13 +170,14 @@
 
         document.getElementById('signup-form').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const username = document.getElementById('signup-username').value;
             const email = document.getElementById('signup-email').value;
             const password = document.getElementById('signup-password').value;
             try {
                 const response = await fetch('/api/signup', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify({ email, password, username })
                 });
                 if (response.ok) {
                     window.location.reload();

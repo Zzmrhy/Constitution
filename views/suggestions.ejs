@@ -7,71 +7,85 @@
             <h3 style="color: #495057;">Submit a Suggestion</h3>
             <form id="suggestion-form">
                 <textarea id="suggestion-text" placeholder="Enter your suggestion..." rows="4" style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px; resize: vertical;"></textarea>
-                <button type="submit" id='btn' style="background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-top: 10px;">Submit Suggestion</button>
+                <button type="button" id='submit-suggestion-btn' style="background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-top: 10px;">Submit Suggestion</button>
             </form>
             <div id="suggestion-error" style="color: red; display: none; margin-top: 10px;"></div>
         </div>
     <% } %>
 
     <!-- Display suggestions -->
-    <% if (suggestions && suggestions.length > 0) { %>
-        <% suggestions.forEach((suggestion) => { %>
-            <div style="background-color: white; border: 1px solid #dee2e6; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                <h3 style="color: #495057;"><%= suggestion.text %></h3>
-                <p style="color: #6c757d;">Submitted by: <%= suggestion.submittedBy %> on <%= new Date(suggestion.submittedAt).toLocaleString() %></p>
-                <p style="color: #6c757d;">Approves: <%= suggestion.votes.approve.length %> | Rejects: <%= suggestion.votes.reject.length %></p>
-                <% if (suggestion.votes.approve.length > 0) { %>
-                    <p style="color: #28a745;">Approved by: <%= suggestion.votes.approve.join(', ') %></p>
-                <% } %>
-                <% if (suggestion.votes.reject.length > 0) { %>
-                    <p style="color: #dc3545;">Rejected by: <%= suggestion.votes.reject.join(', ') %></p>
-                <% } %>
-                <!-- Voting buttons for sub-admins and the submitter -->
-                <% if (!isAdmin && (isSubAdmin || suggestion.submittedBy === user.Email)) { %>
-                    <form class="vote-form" data-id="<%= suggestion.id %>" style="display: inline;">
-                        <input type="hidden" name="vote" value="approve">
-                        <button type="submit" id='btn' style="background-color: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Approve</button>
-                    </form>
-                    <form class="vote-form" data-id="<%= suggestion.id %>" style="display: inline; margin-left: 10px;">
-                        <input type="hidden" name="vote" value="reject">
-                        <button type="submit" id='btn' style="background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Reject</button>
-                    </form>
-                <% } %>
-            </div>
-        <% }); %>
-    <% } else { %>
-        <h1 style="text-align: center; color: #6c757d;">No suggestions yet</h1>
+    <% if (isAdmin || isSubAdmin) { %>
+        <% if (suggestions && suggestions.length > 0) { %>
+            <% suggestions.forEach((suggestion) => { %>
+                <div style="background-color: white; border: 1px solid #dee2e6; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <h3 style="color: #495057;"><%= suggestion.text %></h3>
+                    <p style="color: #6c757d;">Submitted by: <%= suggestion.submittedBy %> on <%= new Date(suggestion.submittedAt).toLocaleString() %></p>
+                    <%
+                        let totalEligibleVoters = users.filter(u => u.admin || u.subAdmin).length;
+                        if (suggestion.submittedBy && users.find(u => u.Email === suggestion.submittedBy && u.subAdmin)) {
+                            totalEligibleVoters -= 1;
+                        }
+                        const approveCount = suggestion.votes.approve.length;
+                        const rejectCount = suggestion.votes.reject.length;
+                        const neededForApproval = Math.ceil(totalEligibleVoters / 2) + 1;
+                        const neededForRejection = Math.ceil(totalEligibleVoters / 2) + 1;
+                    %>
+                    <p style="color: #6c757d;">Approves: <%= approveCount %> / <%= neededForApproval %> | Rejects: <%= rejectCount %> / <%= neededForRejection %></p>
+                    <% if (suggestion.votes.approve.length > 0) { %>
+                        <p style="color: #28a745;">Approved by: <%= suggestion.votes.approve.join(', ') %></p>
+                    <% } %>
+                    <% if (suggestion.votes.reject.length > 0) { %>
+                        <p style="color: #dc3545;">Rejected by: <%= suggestion.votes.reject.join(', ') %></p>
+                    <% } %>
+                    <!-- Voting buttons for admins and sub-admins (excluding the submitter) -->
+                    <% if (isAdmin || (isSubAdmin && suggestion.submittedBy !== user.Email)) { %>
+                        <form class="vote-form" data-id="<%= suggestion.id %>" style="display: inline;">
+                            <input type="hidden" name="vote" value="approve">
+                            <button type="submit" id='btn' style="background-color: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Approve</button>
+                        </form>
+                        <form class="vote-form" data-id="<%= suggestion.id %>" style="display: inline; margin-left: 10px;">
+                            <input type="hidden" name="vote" value="reject">
+                            <button type="submit" id='btn' style="background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Reject</button>
+                        </form>
+                    <% } %>
+                </div>
+            <% }); %>
+        <% } else { %>
+            <h1 style="text-align: center; color: #6c757d;">No suggestions yet</h1>
+        <% } %>
     <% } %>
 </div>
 
 <script>
     // Handle suggestion submission
-    document.getElementById('suggestion-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const text = document.getElementById('suggestion-text').value.trim();
-        if (!text) {
-            document.getElementById('suggestion-error').textContent = 'Suggestion text is required';
-            document.getElementById('suggestion-error').style.display = 'block';
-            return;
-        }
-        try {
-            const response = await fetch('/api/suggestions', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ suggestion: text })
-            });
-            if (response.ok) {
-                window.location.reload();
-            } else {
-                const data = await response.json();
-                document.getElementById('suggestion-error').textContent = data.error || 'Failed to submit suggestion';
+    if (document.getElementById('submit-suggestion-btn')) {
+        document.getElementById('submit-suggestion-btn').addEventListener('click', async (e) => {
+            const text = document.getElementById('suggestion-text').value.trim();
+            if (!text) {
+                document.getElementById('suggestion-error').textContent = 'Suggestion text is required';
+                document.getElementById('suggestion-error').style.display = 'block';
+                return;
+            }
+            try {
+                const response = await fetch('/api/suggestions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ suggestion: text })
+                });
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const data = await response.json();
+                    document.getElementById('suggestion-error').textContent = data.error || 'Failed to submit suggestion';
+                    document.getElementById('suggestion-error').style.display = 'block';
+                }
+            } catch (err) {
+                document.getElementById('suggestion-error').textContent = 'Network error';
                 document.getElementById('suggestion-error').style.display = 'block';
             }
-        } catch (err) {
-            document.getElementById('suggestion-error').textContent = 'Network error';
-            document.getElementById('suggestion-error').style.display = 'block';
-        }
-    });
+        });
+    }
 
     // Handle voting
     document.querySelectorAll('.vote-form').forEach(form => {

@@ -1,3 +1,25 @@
 #nav {
     font-size: 2rem;
+    color: white;
+    text-decoration: none;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #007bff, #28a745);
+    border-radius: 10px;
+    margin: 5px;
+    display: inline-block;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+#nav:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+nav {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 20px 0;
 }

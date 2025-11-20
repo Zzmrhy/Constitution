@@ -1,0 +1,91 @@
+<div style="max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f8f9fa; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+    <h1 id='header3' style="text-align: center; color: #17a2b8; margin-bottom: 30px;">Head Admin Approvals</h1>
+
+    <!-- Pending Approvals -->
+    <% if (pendingSuggestions && pendingSuggestions.length > 0) { %>
+        <h2 style="color: #495057; margin-bottom: 20px;">Pending Suggestions</h2>
+        <% pendingSuggestions.forEach((suggestion) => { %>
+            <div style="background-color: white; border: 1px solid #dee2e6; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <h3 style="color: #495057;"><%= suggestion.text %></h3>
+                <p style="color: #6c757d;">Submitted by: <%= suggestion.submittedBy %> on <%= new Date(suggestion.submittedAt).toLocaleString() %></p>
+                <p style="color: #6c757d;">Type: <%= suggestion.type %></p>
+                <form class="approve-form" data-id="<%= suggestion.id %>" style="display: inline;">
+                    <input type="hidden" name="action" value="approve">
+                    <button type="submit" id='btn' style="background-color: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Approve</button>
+                </form>
+                <form class="reject-form" data-id="<%= suggestion.id %>" style="display: inline; margin-left: 10px;">
+                    <input type="hidden" name="action" value="reject">
+                    <button type="submit" id='btn' style="background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Reject</button>
+                </form>
+            </div>
+        <% }); %>
+    <% } else { %>
+        <h2 style="text-align: center; color: #6c757d;">No pending suggestions</h2>
+    <% } %>
+
+    <!-- Rejected Suggestions for Veto -->
+    <% if (rejectedSuggestions && rejectedSuggestions.length > 0) { %>
+        <h2 style="color: #495057; margin-bottom: 20px; margin-top: 40px;">Rejected Suggestions (Veto Available)</h2>
+        <% rejectedSuggestions.forEach((suggestion) => { %>
+            <div style="background-color: white; border: 1px solid #dee2e6; padding: 15px; margin-bottom: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <h3 style="color: #495057;"><%= suggestion.text %></h3>
+                <p style="color: #6c757d;">Submitted by: <%= suggestion.submittedBy %> on <%= new Date(suggestion.submittedAt).toLocaleString() %></p>
+                <p style="color: #6c757d;">Rejected on: <%= new Date(suggestion.rejectedAt).toLocaleString() %></p>
+                <p style="color: #6c757d;">Type: <%= suggestion.type %></p>
+                <form class="veto-form" data-id="<%= suggestion.id %>" style="display: inline;">
+                    <input type="hidden" name="action" value="veto">
+                    <button type="submit" id='btn' style="background-color: #ffc107; color: black; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Veto Rejection</button>
+                </form>
+            </div>
+        <% }); %>
+    <% } else { %>
+        <h2 style="text-align: center; color: #6c757d; margin-top: 40px;">No rejected suggestions to veto</h2>
+    <% } %>
+</div>
+
+<script>
+    // Handle approval/rejection
+    document.querySelectorAll('.approve-form, .reject-form').forEach(form => {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = form.getAttribute('data-id');
+            const action = form.querySelector('input[name="action"]').value;
+            try {
+                const response = await fetch(`/api/head-admin-approvals/${id}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action })
+                });
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Failed to process');
+                }
+            } catch (err) {
+                alert('Network error');
+            }
+        });
+    });
+
+    // Handle veto
+    document.querySelectorAll('.veto-form').forEach(form => {
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = form.getAttribute('data-id');
+            try {
+                const response = await fetch(`/api/veto-rejection/${id}`, {
+                    method: 'POST'
+                });
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Failed to veto');
+                }
+            } catch (err) {
+                alert('Network error');
+            }
+        });
+    });
+</script>

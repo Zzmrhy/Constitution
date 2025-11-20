@@ -34,32 +34,34 @@
 
 <script>
     // Handle violation submission
-    document.getElementById('violation-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const text = document.getElementById('violation-text').value.trim();
-        if (!text) {
-            document.getElementById('violation-error').textContent = 'Violation text is required';
-            document.getElementById('violation-error').style.display = 'block';
-            return;
-        }
-        try {
-            const response = await fetch('/api/violations', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ violation: text })
-            });
-            if (response.ok) {
-                window.location.reload();
-            } else {
-                const data = await response.json();
-                document.getElementById('violation-error').textContent = data.error || 'Failed to add violation';
+    if (document.getElementById('violation-form')) {
+        document.getElementById('violation-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = document.getElementById('violation-text').value.trim();
+            if (!text) {
+                document.getElementById('violation-error').textContent = 'Violation text is required';
+                document.getElementById('violation-error').style.display = 'block';
+                return;
+            }
+            try {
+                const response = await fetch('/api/violations', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ violation: text })
+                });
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const data = await response.json();
+                    document.getElementById('violation-error').textContent = data.error || 'Failed to add violation';
+                    document.getElementById('violation-error').style.display = 'block';
+                }
+            } catch (err) {
+                document.getElementById('violation-error').textContent = 'Network error';
                 document.getElementById('violation-error').style.display = 'block';
             }
-        } catch (err) {
-            document.getElementById('violation-error').textContent = 'Network error';
-            document.getElementById('violation-error').style.display = 'block';
-        }
-    });
+        });
+    }
 
     // Handle deletion
     document.querySelectorAll('.delete-form').forEach(form => {

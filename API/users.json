@@ -1,29 +1,47 @@
 [
   {
-    "admin": true,
+    "admin": false,
+    "headAdmin": true,
+    "username": "Aiden Rathbun",
     "Email": "aidenrathun@gmail.com",
     "Password": "$2b$10$Eqfq9yZYQBmze2fIIPeJt.vg4tuUdcawdv.AA61GDS0F/VwIT1DKe"
   },
   {
     "admin": true,
+    "headAdmin": false,
+    "username": "Preston Cessna",
     "Email": "prestonis2008@gmail.com",
     "Password": "$2b$10$3y.jclc7KdxkP1kSqYKDcexX1cV1ekOJrivO4u70bPSF/thXZbg5e"
   },
   {
     "admin": true,
+    "headAdmin": false,
+    "username": "vkuhl0913",
     "Email": "vkuhl0913@mtsd.org",
     "Password": "$2b$10$Co2EWNfvIuD3OG2l7.sgwubgV0Gg/ik4gcLAA/Z7jBmCHrcMYqdMK"
   },
   {
-    "Email": "CMP_BeHedderman@students.ects.org",
-    "Password": "$2a$10$examplehashedpassword",
     "admin": false,
-    "subAdmin": false
+    "subAdmin": false,
+    "headAdmin": false,
+    "username": "CMP_BeHedderman",
+    "Email": "CMP_BeHedderman@students.ects.org",
+    "Password": "$2b$10$tgN35qDjB3IHkmSaAlaa/uFJ9jS5PcA2mcDcUnbzgM67SgVoRlByq"
+  },
+  {
+    "admin": false,
+    "subAdmin": true,
+    "headAdmin": false,
+    "username": "CMP_BrMcNeely",
+    "Email": "CMP_BrMcNeely@students.ects.org",
+    "Password": "$2b$10$5z0ZTkD54wUrvceuApLVkuP2VpWu3sDQvuFG/TRUwgFn3m8.NpeL."
   },
   {
     "admin": false,
     "subAdmin": false,
-    "Email": "aiden.rathbun07@yahoo.com",
-    "Password": "$2b$10$z1WA5tNFdEpiUohtiyKQzO7LcWGzI6x1b6HWlGj5s0lAJ8xzlTevu"
+    "headAdmin": false,
+    "username": "aiden.rathbun07",
+    "Email": "aiden.rathbun07@gmail.com",
+    "Password": "$2b$10$nnUu6L975L3YapmZpPrTPeQJo1DVuieSu1EFHD/PZea068/y3DILK"
   }
 ]

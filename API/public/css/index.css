@@ -35,6 +35,129 @@ h1 {
   line-height: 1.1;
 }
 
+/* Header section styles */
+.header-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  margin-bottom: 20px;
+  background-color: #1a1a1a; /* Dark background for dark mode */
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+@media (prefers-color-scheme: light) {
+  .header-section {
+    background-color: #f8f9fa; /* Light background for light mode */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+}
+
+.header-section img {
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 10px;
+}
+
+.header-section h1 {
+  font-size: 2em;
+  color: #ffffff; /* White text for dark mode */
+  margin: 0;
+  text-align: center;
+}
+
+@media (prefers-color-scheme: light) {
+  .header-section h1 {
+    color: #333; /* Dark text for light mode */
+  }
+}
+
+/* Welcome section styles */
+.welcome-section {
+  text-align: center;
+  padding: 50px;
+  background-color: #333; /* Dark background for dark mode */
+  border-radius: 10px;
+  margin: 20px 0;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+@media (prefers-color-scheme: light) {
+  .welcome-section {
+    background-color: #e9ecef; /* Light background for light mode */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+}
+
+.welcome-section h1 {
+  color: #007bff; /* Blue for both modes */
+  font-size: 2.5em;
+  margin-bottom: 20px;
+}
+
+.welcome-section p {
+  font-size: 1.2em;
+  color: #ccc; /* Light gray for dark mode */
+}
+
+@media (prefers-color-scheme: light) {
+  .welcome-section p {
+    color: #666; /* Dark gray for light mode */
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .header-section {
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+
+  .header-section h1 {
+    font-size: 1.5em;
+  }
+
+  .welcome-section {
+    padding: 30px 20px;
+  }
+
+  .welcome-section h1 {
+    font-size: 2em;
+  }
+
+  .welcome-section p {
+    font-size: 1em;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-section {
+    padding: 10px;
+  }
+
+  .header-section img {
+    width: 150px;
+  }
+
+  .header-section h1 {
+    font-size: 1.2em;
+  }
+
+  .welcome-section {
+    padding: 20px 15px;
+  }
+
+  .welcome-section h1 {
+    font-size: 1.5em;
+  }
+
+  .welcome-section p {
+    font-size: 0.9em;
+  }
+}
+
 /* Violations page specific styles */
 .violations-container {
   max-width: 1200px;

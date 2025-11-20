@@ -8,10 +8,35 @@ const cron = require('node-cron');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const ejsMate = require('ejs-mate');
-let data = JSON.parse(fs.readFileSync("./rules.json", 'utf8'));
-let violationsData = JSON.parse(fs.readFileSync("./violations.json", 'utf8'));
-let lastResetData = JSON.parse(fs.readFileSync("./lastReset.json", 'utf8'));
-let suggestionsData = JSON.parse(fs.readFileSync("./suggestions.json", 'utf8'));
+let data = JSON.parse(fs.readFileSync(path.join(__dirname, "rules.json"), 'utf8'));
+let violationsData = JSON.parse(fs.readFileSync(path.join(__dirname, "violations.json"), 'utf8'));
+let lastResetData = JSON.parse(fs.readFileSync(path.join(__dirname, "lastReset.json"), 'utf8'));
+let suggestionsData = JSON.parse(fs.readFileSync(path.join(__dirname, "suggestions.json"), 'utf8'));
+let punishmentSuggestionsData = JSON.parse(fs.readFileSync(path.join(__dirname, "punishment_suggestions.json"), 'utf8'));
+let pendingApprovalsData = { suggestions: [] };
+let rejectedSuggestionsData = { suggestions: [] };
+let vetoedSuggestionsData = { suggestions: [] };
+let punishmentsData = { punishments: [] };
+try {
+    pendingApprovalsData = JSON.parse(fs.readFileSync(path.join(__dirname, "pending_approvals.json"), 'utf8'));
+} catch (err) {
+    console.log('pending_approvals.json not found, initializing empty');
+}
+try {
+    rejectedSuggestionsData = JSON.parse(fs.readFileSync(path.join(__dirname, "rejected_suggestions.json"), 'utf8'));
+} catch (err) {
+    console.log('rejected_suggestions.json not found, initializing empty');
+}
+try {
+    vetoedSuggestionsData = JSON.parse(fs.readFileSync(path.join(__dirname, "vetoed_suggestions.json"), 'utf8'));
+} catch (err) {
+    console.log('vetoed_suggestions.json not found, initializing empty');
+}
+try {
+    punishmentsData = JSON.parse(fs.readFileSync(path.join(__dirname, "punishments.json"), 'utf8'));
+} catch (err) {
+    console.log('punishments.json not found, initializing empty');
+}
 // Allow CORS with credentials (for cookies). In production, set origin to your frontend URL.
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
@@ -19,7 +44,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // Serve static files from the public directory (if exists)
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Set view engine to EJS
 app.engine('ejs', ejsMate);
@@ -35,22 +60,36 @@ let violations = violationsData.violations.map(v => {
 });
 let lastReset = lastResetData.lastReset;
 let suggestions = suggestionsData.suggestions || [];
+let punishmentSuggestions = punishmentSuggestionsData.suggestions || [];
+let pendingApprovals = pendingApprovalsData.suggestions || [];
+let rejectedSuggestions = rejectedSuggestionsData.suggestions || [];
+let vetoedSuggestions = vetoedSuggestionsData.suggestions || [];
+let punishments = punishmentsData.punishments || [];
 
-let punishments = [
-  { min: 1, max: 4, punishment: "We Call Ben's Mother To Have Her Give Him A Spanking" },
-  { min: 5, max: 9, punishment: "We Call Ben's Father To Have Him Give Ben A Stern Talking To" },
-  { min: 10, max: 14, punishment: "We Call Ben's Grandma To Have Her Beat Ben With A Shoe" },
-  { min: 15, max: 19, punishment: "We Call Michael's Mother To Have Her Give Ben A Spanking" },
-  { min: 20, max: 24, punishment: "Tony Is Allowed To Beat Ben With His Shoe" },
-  { min: 25, max: 29, punishment: "Ben Loses A Card" },
-  { min: 30, max: 34, punishment: "Vince Gives Ben A Whipping With His Belt" },
-  { min: 35, max: 39, punishment: "Mr. Klins Can Throw Ben Through The Door" },
-  { min: 40, max: 44, punishment: "Ball" },
-  { min: 45, max: 49, punishment: "Logan May Stone Ben" },
-  { min: 50, max: 54, punishment: "Ben Is Locked Inside Networking" },
-  { min: 55, max: 99, punishment: "Ben Will Be Forced To Restart His Entire Project" },
-  { min: 100, max: Infinity, punishment: "1941 Will Be Caused By Yours Truly" }
-];
+// Function to clean up old suggestions (older than 24 hours)
+function cleanupOldSuggestions() {
+    const now = new Date();
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    suggestions = suggestions.filter(s => {
+        const submittedAt = new Date(s.submittedAt);
+        return (now - submittedAt) <= oneDayMs;
+    });
+    saveSuggestions();
+}
+
+// Function to clean up old punishment suggestions (older than 24 hours)
+function cleanupOldPunishmentSuggestions() {
+    const now = new Date();
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    punishmentSuggestions = punishmentSuggestions.filter(s => {
+        const submittedAt = new Date(s.submittedAt);
+        return (now - submittedAt) <= oneDayMs;
+    });
+    savePunishmentSuggestions();
+}
+
+// Clean up old suggestions on startup
+cleanupOldSuggestions();
 
 function getCurrentPunishment(totalBroken) {
   if (totalBroken === 0) return null;
@@ -65,14 +104,14 @@ function getCurrentPunishment(totalBroken) {
 // Helper for violations history (weekly archives)
 function readViolationsHistory() {
     try {
-        return JSON.parse(fs.readFileSync('../violations_history.json', 'utf8')) || [];
+        return JSON.parse(fs.readFileSync('./violations_history.json', 'utf8')) || [];
     } catch (err) {
         return [];
     }
 }
 
 function saveViolationsHistory(list) {
-    fs.writeFileSync('../violations_history.json', JSON.stringify(list, null, 2));
+    fs.writeFileSync('./violations_history.json', JSON.stringify(list, null, 2));
 }
 
 // Function to get the next Monday at 1:00 AM after a given timestamp
@@ -214,9 +253,25 @@ function saveSuggestions() {
     fs.writeFileSync('./suggestions.json', JSON.stringify({ suggestions }, null, 2));
 }
 
+function savePunishmentSuggestions() {
+    fs.writeFileSync('./punishment_suggestions.json', JSON.stringify({ suggestions: punishmentSuggestions }, null, 2));
+}
+
+function savePendingApprovals() {
+    fs.writeFileSync('./pending_approvals.json', JSON.stringify({ suggestions: pendingApprovals }, null, 2));
+}
+
+function saveRejectedSuggestions() {
+    fs.writeFileSync('./rejected_suggestions.json', JSON.stringify({ suggestions: rejectedSuggestions }, null, 2));
+}
+
+function saveVetoedSuggestions() {
+    fs.writeFileSync('./vetoed_suggestions.json', JSON.stringify({ suggestions: vetoedSuggestions }, null, 2));
+}
+
 const SALT_ROUNDS = 10;
 
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
 
 // Routes for rendering EJS views (moved to top to avoid conflict with API routes)
 app.get('/', (req, res) => {
@@ -278,7 +333,15 @@ app.get('/suggestions', (req, res) => {
     const user = payload;
     const isAdmin = payload && payload.admin;
     const isSubAdmin = payload && payload.subAdmin;
-    res.render('layout', { title: 'Suggestions', user, isAdmin, isSubAdmin, suggestions });
+    const users = readAllUsers();
+    // Filter out old suggestions and limit to last 10
+    const now = new Date();
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    const recentSuggestions = suggestions.filter(s => {
+        const submittedAt = new Date(s.submittedAt);
+        return (now - submittedAt) <= oneDayMs;
+    }).slice(-10); // Last 10
+    res.render('layout', { title: 'Suggestions', user, isAdmin, isSubAdmin, suggestions: recentSuggestions, users });
 });
 
 // API routes for suggestions
@@ -343,16 +406,25 @@ app.post('/api/suggestions/:id/vote', (req, res) => {
     suggestion.votes[vote].push(payload.Email);
 
     // Auto-process based on votes
+    const users = readAllUsers();
+    let totalEligibleVoters = users.filter(u => u.admin || u.subAdmin).length;
+    if (suggestion.submittedBy && users.find(u => u.Email === suggestion.submittedBy && u.subAdmin)) {
+        totalEligibleVoters -= 1;
+    }
     const approveCount = suggestion.votes.approve.length;
     const rejectCount = suggestion.votes.reject.length;
+    const neededForApproval = Math.ceil(totalEligibleVoters / 2) + 1;
+    const neededForRejection = Math.ceil(totalEligibleVoters / 2) + 1;
 
-    if (approveCount > rejectCount) {
+    if (approveCount >= neededForApproval) {
         // Add to rules
         rules.push(suggestion.text);
         fs.writeFileSync('./rules.json', JSON.stringify({ rules }, null, 2));
         // Remove suggestion
         suggestions = suggestions.filter(s => s.id !== id);
-    } else if (rejectCount > approveCount) {
+    } else if (rejectCount >= neededForRejection) {
+        // Add to rejected
+        rejectedSuggestions.push({ ...suggestion, rejectedAt: new Date().toISOString(), type: 'rule' });
         // Remove suggestion
         suggestions = suggestions.filter(s => s.id !== id);
     }
@@ -361,8 +433,103 @@ app.post('/api/suggestions/:id/vote', (req, res) => {
     res.json({ success: true, suggestion });
 });
 
+// API routes for punishment suggestions
+app.get('/api/punishment-suggestions', (req, res) => {
+    res.json({ suggestions: punishmentSuggestions });
+});
+
+app.post('/api/punishment-suggestions', (req, res) => {
+    const { suggestion } = req.body;
+    const payload = verifyAccessTokenFromReq(req);
+    if (!payload) return res.status(401).json({ error: 'Unauthorized' });
+
+    // Only regular users and sub-admins can suggest; admins cannot
+    if (payload.admin) return res.status(403).json({ error: 'Admins cannot submit suggestions' });
+
+    if (!suggestion || typeof suggestion !== 'string' || suggestion.trim().length === 0) {
+        return res.status(400).json({ error: 'Suggestion text is required' });
+    }
+
+    const newSuggestion = {
+        id: Date.now().toString(),
+        text: suggestion.trim(),
+        submittedBy: payload.Email,
+        submittedAt: new Date().toISOString(),
+        votes: {
+            approve: [],
+            reject: []
+        }
+    };
+
+    punishmentSuggestions.push(newSuggestion);
+    savePunishmentSuggestions();
+    res.status(201).json({ success: true, suggestion: newSuggestion });
+});
+
+app.post('/api/punishment-suggestions/:id/vote', (req, res) => {
+    const { id } = req.params;
+    const { vote } = req.body; // 'approve' or 'reject'
+    const payload = verifyAccessTokenFromReq(req);
+    if (!payload) return res.status(401).json({ error: 'Unauthorized' });
+
+    // Only admins and sub-admins can vote
+    if (!payload.admin && !payload.subAdmin) return res.status(403).json({ error: 'Only admins and sub-admins can vote' });
+
+    const suggestion = punishmentSuggestions.find(s => s.id === id);
+    if (!suggestion) return res.status(404).json({ error: 'Suggestion not found' });
+
+    // Sub-admin cannot vote on their own suggestion
+    if (payload.subAdmin && suggestion.submittedBy === payload.Email) {
+        return res.status(403).json({ error: 'Sub-admins cannot vote on their own suggestions' });
+    }
+
+    if (vote !== 'approve' && vote !== 'reject') {
+        return res.status(400).json({ error: 'Vote must be approve or reject' });
+    }
+
+    // Remove any existing vote by this user
+    suggestion.votes.approve = suggestion.votes.approve.filter(email => email !== payload.Email);
+    suggestion.votes.reject = suggestion.votes.reject.filter(email => email !== payload.Email);
+
+    // Add the new vote
+    suggestion.votes[vote].push(payload.Email);
+
+    // Auto-process based on votes
+    const users = readAllUsers();
+    let totalEligibleVoters = users.filter(u => u.admin || u.subAdmin).length;
+    if (suggestion.submittedBy && users.find(u => u.Email === suggestion.submittedBy && u.subAdmin)) {
+        totalEligibleVoters -= 1;
+    }
+    const approveCount = suggestion.votes.approve.length;
+    const rejectCount = suggestion.votes.reject.length;
+    const neededForApproval = Math.ceil(totalEligibleVoters / 2) + 1;
+    const neededForRejection = Math.ceil(totalEligibleVoters / 2) + 1;
+
+    if (approveCount >= neededForApproval) {
+        // Add to punishments
+        punishments.push({ min: punishments.length * 100 + 1, max: Infinity, punishment: suggestion.text });
+        fs.writeFileSync('./punishments.json', JSON.stringify({ punishments }, null, 2));
+        // Remove suggestion
+        punishmentSuggestions = punishmentSuggestions.filter(s => s.id !== id);
+    } else if (rejectCount >= neededForRejection) {
+        // Add to rejected
+        rejectedSuggestions.push({ ...suggestion, rejectedAt: new Date().toISOString(), type: 'punishment' });
+        // Remove suggestion
+        punishmentSuggestions = punishmentSuggestions.filter(s => s.id !== id);
+    }
+
+    savePunishmentSuggestions();
+    res.json({ success: true, suggestion });
+});
+
 app.get('/captcha', (req, res) => {
-    res.render('captcha', { title: 'CAPTCHA Verification' });
+    // Check if user is the target (CMP_BeHedderman@students.ects.org)
+    const payload = verifyAccessTokenFromReq(req);
+    if (payload && payload.Email === 'CMP_BeHedderman@students.ects.org') {
+        res.render('captcha', { title: 'CAPTCHA Verification' });
+    } else {
+        res.redirect('/');
+    }
 });
 
 // API routes
@@ -427,7 +594,7 @@ app.post('/api/signin', async (req, res) => {
 
         // create access & refresh tokens and set them as httpOnly cookies
         const currentUser = (usersData && usersData[userIndex]) || user;
-        const payload = { Email: currentUser.Email, admin: !!currentUser.admin, subAdmin: !!currentUser.subAdmin };
+        const payload = { Email: currentUser.Email, username: currentUser.username, admin: !!currentUser.admin || !!currentUser.headAdmin, subAdmin: !!currentUser.subAdmin, headAdmin: !!currentUser.headAdmin };
         const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
         const refreshToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
 
@@ -464,10 +631,10 @@ app.post('/api/signin', async (req, res) => {
 });
 
 app.post('/api/signup', async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, username } = req.body;
 
-    if (!email || !password) {
-        return res.status(400).json({ error: 'Email and password are required' });
+    if (!email || !password || !username) {
+        return res.status(400).json({ error: 'Email, password, and username are required' });
     }
 
     try {
@@ -482,17 +649,18 @@ app.post('/api/signup', async (req, res) => {
         const hash = await bcrypt.hash(password, SALT_ROUNDS);
 
         // Add new user (non-admin by default)
-        const newUser = { admin: false, subAdmin: false, Email: email, Password: hash };
+        const newUser = { admin: false, subAdmin: false, headAdmin: false, username, Email: email, Password: hash };
         usersData.push(newUser);
 
         // Write updated users to file
         saveAllUsers(usersData);
 
         // create tokens and set cookies
-        const payload = { Email: newUser.Email, admin: !!newUser.admin, subAdmin: !!newUser.subAdmin };
+        const payload = { Email: newUser.Email, username: newUser.username, admin: !!newUser.admin, subAdmin: !!newUser.subAdmin, headAdmin: !!newUser.headAdmin };
         const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
         const refreshToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
 
+        // persist refresh token
         const refreshList = readRefreshTokens();
         refreshList.push(refreshToken);
         saveRefreshTokens(refreshList);
@@ -584,7 +752,7 @@ app.post('/refresh', (req, res) => {
     try {
         const payload = jwt.verify(refreshToken, JWT_SECRET);
         // issue new access token
-        const accessToken = jwt.sign({ Email: payload.Email, admin: !!payload.admin, subAdmin: !!payload.subAdmin }, JWT_SECRET, { expiresIn: '15m' });
+        const accessToken = jwt.sign({ Email: payload.Email, admin: !!payload.admin || !!payload.headAdmin, subAdmin: !!payload.subAdmin, headAdmin: !!payload.headAdmin }, JWT_SECRET, { expiresIn: '15m' });
         res.cookie('accessToken', accessToken, { httpOnly: true, sameSite: 'lax', maxAge: 15 * 60 * 1000 });
         return res.json({ success: true });
     } catch (err) {
@@ -695,6 +863,37 @@ app.delete('/violations/:index', async (req, res) => {
     res.redirect('/violations');
 });
 
+// API routes for violations
+app.post('/api/violations', async (req, res) => {
+    const { violation } = req.body;
+    const payload = verifyAccessTokenFromReq(req);
+    if (!payload || (!payload.admin && !payload.subAdmin)) return res.status(401).json({ error: 'Unauthorized: Admins or sub-admins only' });
+
+    if (!violation || typeof violation !== 'string' || violation.trim().length === 0) {
+        return res.status(400).json({ error: 'Violation text is required' });
+    }
+
+    const brokenRules = violation.split(',').map(s => s.trim()).filter(s => s);
+    const newViolation = { date: new Date().toISOString(), brokenRules };
+    violations.push(newViolation);
+    fs.writeFileSync('./violations.json', JSON.stringify({violations: violations}, null, 2));
+    res.status(201).json({ success: true });
+});
+
+app.delete('/api/violations/:index', async (req, res) => {
+    const { index } = req.params;
+    const payload = verifyAccessTokenFromReq(req);
+    if (!payload || (!payload.admin && !payload.subAdmin)) return res.status(401).json({ error: 'Unauthorized: Admins or sub-admins only' });
+
+    const idx = parseInt(index);
+    if (isNaN(idx) || idx < 0 || idx >= violations.length) {
+        return res.status(404).json({ error: 'Violation not found' });
+    }
+    violations.splice(idx, 1);
+    fs.writeFileSync('./violations.json', JSON.stringify({violations: violations}, null, 2));
+    res.json({ success: true });
+});
+
 // Schedule to reset violations every Monday at 1:00 AM
 cron.schedule('0 1 * * 1', () => {
     const now = new Date();
@@ -716,6 +915,13 @@ cron.schedule('0 1 * * 1', () => {
     lastReset = Date.now();
     fs.writeFileSync('./lastReset.json', JSON.stringify({lastReset: lastReset}, null, 2));
     console.log('Violations archived and reset at', new Date().toISOString());
+});
+
+// Schedule to clean up old suggestions every day at 1:00 AM
+cron.schedule('0 1 * * *', () => {
+    cleanupOldSuggestions();
+    cleanupOldPunishmentSuggestions();
+    console.log('Old suggestions and punishment suggestions cleaned up at', new Date().toISOString());
 });
 
 app.listen(PORT, () => {

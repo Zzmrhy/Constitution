@@ -1,3 +1,7 @@
+body {
+  background: linear-gradient(45deg, #00ffff, #ffffff, #ffd700);
+}
+
 .container {
   width: 90%;
   margin: auto;
@@ -49,12 +53,13 @@ button:hover {
 
 img {
   padding-top: 1.2rem;
-  padding-left: 2rem;
-  padding-right: 9.5rem;
+  margin-right: 2rem;
 }
 
 #h {
   display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .fade-page {
@@ -82,7 +87,8 @@ img {
 @media (prefers-color-scheme: light) {
   #header {
     font-size: 5rem;
-    color: darkred;
+    background-color: darkred;
+    color: white;
   }
 
   #header2 {
@@ -116,4 +122,10 @@ img {
       transform: translateY(0);
     }
   }
+}
+
+.welcome-span {
+    font-size: 18px;
+    font-weight: bold;
+    color: #007bff;
 }

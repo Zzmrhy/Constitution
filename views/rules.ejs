@@ -3,20 +3,20 @@
     <% if (isAdmin) { %>
         <div style="background-color: #e8f4fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #007bff;">
             <h3 id='header2' style="color: #007bff; margin-bottom: 10px;">Admin Controls</h3>
-            <form action="/rules" method="POST" style="display: inline-block;">
+            <form action="/api/rules" method="POST" style="display: inline-block;">
                 <input type="text" name="rule" placeholder="Enter new rule" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-right: 10px;" required>
-                <button id='btn' type="submit" style="background-color: #007bff; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Add Rule</button>
+                <button id='add-rule-btn' type="submit" style="background-color: #007bff; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Add Rule</button>
             </form>
         </div>
     <% } %>
     <% if (!isAdmin) { %>
         <div style="background-color: #d1ecf1; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #17a2b8;">
             <h3 id='header2' style="color: #0c5460; margin-bottom: 10px;">Suggest a New Rule</h3>
-            <form action="/suggestions" method="POST" style="display: inline-block;">
-                <input type="hidden" name="type" value="rule">
-                <input type="text" name="text" placeholder="Enter rule suggestion" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-right: 10px;" required>
-                <button id='btn' type="submit" style="background-color: #17a2b8; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Suggest</button>
+            <form id="rule-suggestion-form" style="display: inline-block;">
+                <input type="text" id="rule-text" placeholder="Enter rule suggestion" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-right: 10px;" required>
+                <button type="button" id='suggest-rule-btn' style="background-color: #17a2b8; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Suggest</button>
             </form>
+            <div id="rule-suggestion-error" style="color: red; display: none; margin-top: 10px;"></div>
         </div>
     <% } %>
     <ul id="list" style="list-style: none; padding: 0; margin-bottom: 30px;">
@@ -25,7 +25,7 @@
                 <li style="background-color: white; margin-bottom: 10px; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); color: #495057;">
                     <%= rule %>
                     <% if (isAdmin) { %>
-                        <form action="/rules" method="POST" style="display: inline-block; margin-left: 10px;">
+                        <form action="/api/rules" method="POST" style="display: inline-block; margin-left: 10px;">
                             <input type="hidden" name="_method" value="DELETE">
                             <input type="hidden" name="rule" value="<%= rule %>">
                             <button id='btn' type="submit" style="background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Delete</button>
@@ -42,3 +42,34 @@
         <h2 id='header3' style="color: #721c24;">Current Punishment: <%= currentPunishment ? currentPunishment.punishment : 'None' %></h2>
     </div>
 </div>
+
+<script>
+    // Handle rule suggestion submission
+    if (document.getElementById('suggest-rule-btn')) {
+        document.getElementById('suggest-rule-btn').addEventListener('click', async (e) => {
+            const text = document.getElementById('rule-text').value.trim();
+            if (!text) {
+                document.getElementById('rule-suggestion-error').textContent = 'Suggestion text is required';
+                document.getElementById('rule-suggestion-error').style.display = 'block';
+                return;
+            }
+            try {
+                const response = await fetch('/api/suggestions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ suggestion: text })
+                });
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    const data = await response.json();
+                    document.getElementById('rule-suggestion-error').textContent = data.error || 'Failed to submit suggestion';
+                    document.getElementById('rule-suggestion-error').style.display = 'block';
+                }
+            } catch (err) {
+                document.getElementById('rule-suggestion-error').textContent = 'Network error';
+                document.getElementById('rule-suggestion-error').style.display = 'block';
+            }
+        });
+    }
+</script>

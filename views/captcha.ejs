@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -20,15 +20,6 @@
             <h1 id="header">Welcome To The Department Of Ben Affairs</h1>
         </div>
         <main>
-            <nav>
-                <div><a href="/do" id="nav">What We Do</a></div>
-                <div><a href="/rules" id="nav">Rules For Ben</a></div>
-                <div><a href="/violations" id="nav">Violations</a></div>
-                <div><a href="/violations-history" id="nav">Violations History</a></div>
-                <div><a href="/punishments" id="nav">Punishments For Ben</a></div>
-                <div><a href="/suggestions" id="nav">Suggestions</a></div>
-            </nav>
-
             <div style="text-align: center; margin: 20px;">
                 <h2>CAPTCHA Verification</h2>
                 <p>Please complete the CAPTCHA to continue.</p>
@@ -36,6 +27,7 @@
                     <!-- CAPTCHA content will be inserted here -->
                 </div>
                 <button id="verify-btn" style="margin-top: 20px;">Verify</button>
+                <button id="cancel-btn" style="margin-top: 20px; margin-left: 10px;">Cancel</button>
             </div>
         </main>
     </div>
@@ -64,18 +56,123 @@
             {
                 question: "Who is the real boss here?",
                 options: ["The Admin", "Ben", "The Constitution", "Nobody"]
+            },
+            {
+                question: "What is Ben's favorite color?",
+                options: ["Red", "Blue", "Green", "Invisible"]
+            },
+            {
+                question: "How many rules has Ben broken today?",
+                options: ["All of them", "None", "Some", "Too many"]
+            },
+            {
+                question: "Who invented the Department of Ben Affairs?",
+                options: ["Ben", "Tony", "The Constitution", "A genius"]
+            },
+            {
+                question: "What does DOBA stand for?",
+                options: ["Department Of Ben Affairs", "Department Of Bad Apples", "Department Of Big Achievements", "Department Of Ben's Anger"]
+            },
+            {
+                question: "What is the ultimate punishment?",
+                options: ["No pizza", "Extra homework", "Time out", "Being Ben"]
+            },
+            {
+                question: "Who is the most punished person?",
+                options: ["Ben", "Tony", "Logan", "The computer"]
+            },
+            {
+                question: "What is the best way to avoid punishment?",
+                options: ["Follow rules", "Hide", "Blame someone else", "Be invisible"]
+            },
+            {
+                question: "How many admins are there?",
+                options: ["1", "2", "Infinite", "None"]
+            },
+            {
+                question: "What is the password to the secret room?",
+                options: ["BenIsBad", "Pizza123", "Constitution", "I don't know"]
+            },
+            {
+                question: "Who controls the punishments?",
+                options: ["The Admin", "Ben", "Random chance", "The Constitution"]
+            },
+            {
+                question: "What is Ben's superpower?",
+                options: ["Breaking rules", "Eating pizza", "Being annoying", "All of the above"]
+            },
+            {
+                question: "How do you become an admin?",
+                options: ["Ask nicely", "Hack the system", "Be born with it", "Impossible"]
+            },
+            {
+                question: "What is the most broken rule?",
+                options: ["Rule 1", "Rule 2", "All rules", "No rules"]
+            },
+            {
+                question: "Who is the real villain?",
+                options: ["Ben", "Tony", "Logan", "The system"]
+            },
+            {
+                question: "What happens if you break all rules?",
+                options: ["Punishment", "Freedom", "Pizza party", "Nothing"]
+            },
+            {
+                question: "How many violations are too many?",
+                options: ["1", "10", "100", "All of them"]
+            },
+            {
+                question: "What is the best defense against punishment?",
+                options: ["Apology", "Excuses", "Blame shifting", "Run away"]
+            },
+            {
+                question: "Who decides the rules?",
+                options: ["The Admin", "Ben", "The Constitution", "Random"]
+            },
+            {
+                question: "What is the ultimate goal?",
+                options: ["Punish Ben", "Eat pizza", "Follow rules", "Chaos"]
+            },
+            {
+                question: "How do you win at this game?",
+                options: ["Follow rules", "Break rules", "Find the button", "Give up"]
+            },
+            {
+                question: "What is the most important thing?",
+                options: ["Rules", "Pizza", "Punishments", "The Constitution"]
+            },
+            {
+                question: "Who is always right?",
+                options: ["The Admin", "Ben", "Tony", "Nobody"]
+            },
+            {
+                question: "What is the secret to success?",
+                options: ["Hard work", "Luck", "Cheating", "Finding shortcuts"]
+            },
+            {
+                question: "How many times has Ben been punished?",
+                options: ["Once", "Twice", "Infinite", "Zero"]
+            },
+            {
+                question: "What is the best punishment?",
+                options: ["No dessert", "Extra chores", "Grounded", "Being Ben"]
             }
         ];
 
-        const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
-        let options = [...randomQuestion.options];
-        if (Math.random() < 0.13) {
-            options[Math.floor(Math.random() * options.length)] = "Michael's Mom";
+        function generateCaptcha() {
+            const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
+            let options = [...randomQuestion.options];
+            if (Math.random() < 0.13) {
+                options[Math.floor(Math.random() * options.length)] = "Michael's Mom";
+            }
+            captchaContainer.innerHTML = `
+                <p>${randomQuestion.question}</p>
+                ${options.map(option => `<label><input type="radio" name="answer" value="${option}"> ${option}</label><br>`).join('')}
+            `;
         }
-        captchaContainer.innerHTML = `
-            <p>${randomQuestion.question}</p>
-            ${options.map(option => `<label><input type="radio" name="answer" value="${option}"> ${option}</label><br>`).join('')}
-        `;
+
+        // Initial captcha generation
+        generateCaptcha();
 
         // Invisible skip button: small random div, impossible to find, no hover, not in dev tools easily
         const skipBtn = document.createElement('div');
@@ -102,37 +199,60 @@
             skipBtn.style.zIndex = '9999'; // Bring to front
         }, Math.floor(Math.random() * 10000) + 5000); // 5-15 seconds
 
-        skipBtn.addEventListener('click', () => {
-            clickCount++;
-            if (clickCount >= requiredClicks) {
-                window.location.href = '/';
-            }
-            // Move to new random position after each click
-            skipBtn.style.left = Math.floor(Math.random() * maxX) + 'px';
-            skipBtn.style.top = Math.floor(Math.random() * maxY) + 'px';
-        });
+        if (skipBtn) {
+            skipBtn.addEventListener('click', () => {
+                clickCount++;
+                if (clickCount >= requiredClicks) {
+                    // Redirect to home but keep the user signed in
+                    window.location.href = '/';
+                }
+                // Move to new random position after each click
+                skipBtn.style.left = Math.floor(Math.random() * maxX) + 'px';
+                skipBtn.style.top = Math.floor(Math.random() * maxY) + 'px';
+            });
+        }
 
-        verifyBtn.addEventListener('click', () => {
-            const selected = document.querySelector('input[name="answer"]:checked');
-            if (!selected) {
-                alert('Please select an answer.');
-                return;
-            }
-            if (selected.value === "Michael's Mom") {
-                // Show image for 50 seconds, then continue with new question
-                document.body.innerHTML = `
-                    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 1000; display: flex; justify-content: center; align-items: center;">
-                        <img src="/images/Michael.png" alt="Michael" style="max-width: 100%; max-height: 100%;">
-                    </div>
-                `;
-                setTimeout(() => {
-                    location.reload();
-                }, 50000);
-            } else {
-                alert('CAPTCHA verified! You can now access the site.');
-                window.location.href = '/';
-            }
-        });
+        const cancelBtn = document.getElementById('cancel-btn');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => {
+                fetch('/signout', { method: 'POST' }).then(() => {
+                    window.location.href = '/';
+                });
+            });
+        }
+
+        if (verifyBtn) {
+            verifyBtn.addEventListener('click', () => {
+                const selected = document.querySelector('input[name="answer"]:checked');
+                if (!selected) {
+                    alert('Please select an answer.');
+                    return;
+                }
+                if (selected.value === "Michael's Mom") {
+                    // Show image as overlay for 50 seconds, then continue with new question
+                    const overlay = document.createElement('div');
+                    overlay.style.position = 'fixed';
+                    overlay.style.top = '0';
+                    overlay.style.left = '0';
+                    overlay.style.width = '100%';
+                    overlay.style.height = '100%';
+                    overlay.style.background = 'black';
+                    overlay.style.zIndex = '1000';
+                    overlay.style.display = 'flex';
+                    overlay.style.justifyContent = 'center';
+                    overlay.style.alignItems = 'center';
+                    overlay.innerHTML = '<img src="/images/Michael.png" alt="Michael" style="max-width: 100%; max-height: 100%;">';
+                    document.body.appendChild(overlay);
+                    setTimeout(() => {
+                        document.body.removeChild(overlay);
+                        generateCaptcha();
+                    }, 50000);
+                } else {
+                    alert('Wrong answer! Try again.');
+                    generateCaptcha();
+                }
+            });
+        }
     </script>
 </body>
 </html>
