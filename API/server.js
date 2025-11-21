@@ -93,8 +93,12 @@ cleanupOldSuggestions();
 
 function getCurrentPunishment(totalBroken) {
   if (totalBroken === 0) return null;
-  for (let p of punishments) {
-    if (totalBroken >= p.min && totalBroken <= p.max) {
+  // Sort punishments by min ascending
+  const sortedPunishments = punishments.slice().sort((a, b) => a.min - b.min);
+  // Find the punishment with the highest min <= totalBroken
+  for (let i = sortedPunishments.length - 1; i >= 0; i--) {
+    const p = sortedPunishments[i];
+    if (totalBroken >= p.min && (p.max === null || totalBroken <= p.max)) {
       return p;
     }
   }
@@ -185,13 +189,13 @@ async function verifyAdminCredentials(email, password) {
     if (looksHashed) {
         try {
             const ok = await bcrypt.compare(password, stored);
-            return ok && user.admin === true;
+            return ok && (user.admin === true || user.headAdmin === true);
         } catch (err) {
             return false;
         }
     }
     // legacy plaintext
-    return stored === password && user.admin === true;
+    return stored === password && (user.admin === true || user.headAdmin === true);
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-me';
@@ -284,7 +288,7 @@ app.get('/rules', (req, res) => {
     const payload = verifyAccessTokenFromReq(req);
     if (!payload) return res.redirect('/');
     const user = payload;
-    const isAdmin = payload && payload.admin;
+    const isAdmin = payload && (payload.admin || payload.headAdmin);
     const totalBroken = violations.reduce((sum, v) => sum + v.brokenRules.length, 0);
     const currentPunishment = getCurrentPunishment(totalBroken);
     res.render('layout', { title: 'Rules', rules, isAdmin, user, totalBroken, currentPunishment });
@@ -294,7 +298,7 @@ app.get('/violations', (req, res) => {
     const payload = verifyAccessTokenFromReq(req);
     if (!payload) return res.redirect('/');
     const user = payload;
-    const isAdmin = payload && payload.admin;
+    const isAdmin = payload && (payload.admin || payload.headAdmin);
     const isSubAdmin = payload && payload.subAdmin;
     const totalBroken = violations.reduce((sum, v) => sum + v.brokenRules.length, 0);
     const currentPunishment = getCurrentPunishment(totalBroken);
@@ -306,7 +310,7 @@ app.get('/punishments', (req, res) => {
     const payload = verifyAccessTokenFromReq(req);
     if (!payload) return res.redirect('/');
     const user = payload;
-    const isAdmin = payload && payload.admin;
+    const isAdmin = payload && (payload.admin || payload.headAdmin);
     const totalBroken = violations.reduce((sum, v) => sum + v.brokenRules.length, 0);
     const currentPunishment = getCurrentPunishment(totalBroken);
     res.render('layout', { title: 'Punishments', punishments, user, isAdmin, totalBroken, currentPunishment });
@@ -331,7 +335,7 @@ app.get('/suggestions', (req, res) => {
     const payload = verifyAccessTokenFromReq(req);
     if (!payload) return res.redirect('/');
     const user = payload;
-    const isAdmin = payload && payload.admin;
+    const isAdmin = payload && (payload.admin || payload.headAdmin);
     const isSubAdmin = payload && payload.subAdmin;
     const users = readAllUsers();
     // Filter out old suggestions and limit to last 10
@@ -506,9 +510,7 @@ app.post('/api/punishment-suggestions/:id/vote', (req, res) => {
     const neededForRejection = Math.ceil(totalEligibleVoters / 2) + 1;
 
     if (approveCount >= neededForApproval) {
-        // Add to punishments
-        punishments.push({ min: punishments.length * 100 + 1, max: Infinity, punishment: suggestion.text });
-        fs.writeFileSync('./punishments.json', JSON.stringify({ punishments }, null, 2));
+        // Approved, but not auto-added - head admin must add manually
         // Remove suggestion
         punishmentSuggestions = punishmentSuggestions.filter(s => s.id !== id);
     } else if (rejectCount >= neededForRejection) {

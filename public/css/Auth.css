@@ -105,3 +105,17 @@ button[type='submit']:disabled {
 .auth-form a:hover {
     color: #764ba2;
 }
+
+@media (prefers-color-scheme: dark) {
+  .auth-container {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2d1b69 100%);
+  }
+
+  button[type='submit'] {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2d1b69 100%);
+  }
+
+  button[type='submit']:hover:not(:disabled) {
+    box-shadow: 0 5px 15px rgba(30, 58, 95, 0.4);
+  }
+}

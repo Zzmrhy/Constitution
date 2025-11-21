@@ -1,75 +1,38 @@
-<div style="max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f8f9fa; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-    <h1 id="header3" style="text-align: center; color: #dc3545; margin-bottom: 30px;">Punishments</h1>
-    <% if (isAdmin) { %>
-        <div style="background-color: #e8f4fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #007bff;">
-            <h3 id='header2' style="color: #007bff; margin-bottom: 10px;">Admin Controls</h3>
-            <form action="/punishments" method="POST" style="display: inline-block;">
-                <input type="text" name="punishment" placeholder="Enter new punishment" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-right: 10px;" required>
-                <input type="number" name="count" placeholder="Violation count" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-right: 10px;" required>
-                <button id='btn' type="submit" style="background-color: #007bff; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Add Punishment</button>
-            </form>
-        </div>
-    <% } %>
-    <% if (!isAdmin) { %>
-        <div style="background-color: #d1ecf1; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #17a2b8;">
-            <h3 id='header2' style="color: #0c5460; margin-bottom: 10px;">Suggest a New Punishment</h3>
-            <form id="punishment-suggestion-form" style="display: inline-block;">
-                <input type="text" id="punishment-text" placeholder="Enter punishment suggestion" style="padding: 8px; border: 1px solid #ccc; border-radius: 4px; margin-right: 10px;" required>
-                <button type="button" id='suggest-punishment-btn' style="background-color: #17a2b8; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Suggest</button>
-            </form>
-            <div id="punishment-suggestion-error" style="color: red; display: none; margin-top: 10px;"></div>
-        </div>
+<div style="max-width: 800px; margin: 0 auto; padding: 40px; background-color: #f8f9fa; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+    <h1 id='header3' style="text-align: center; color: #17a2b8; margin-bottom: 40px;">Punishments</h1>
 
-        <script>
-            // Handle punishment suggestion submission
-            if (document.getElementById('punishment-text')) {
-                document.getElementById('punishment-text').addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                        e.preventDefault();
-                        document.querySelector('#punishment-suggestion-form button[type="button"]').click();
-                    }
-                });
-            }
-            if (document.querySelector('#punishment-suggestion-form button[type="button"]')) {
-                document.querySelector('#punishment-suggestion-form button[type="button"]').addEventListener('click', async (e) => {
-                    const text = document.getElementById('punishment-text').value.trim();
-                    if (!text) {
-                        document.getElementById('punishment-suggestion-error').textContent = 'Suggestion text is required';
-                        document.getElementById('punishment-suggestion-error').style.display = 'block';
-                        return;
-                    }
-                    try {
-                        const response = await fetch('/api/suggestions', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ suggestion: text })
-                        });
-                        if (response.ok) {
-                            window.location.reload();
-                        } else {
-                            const data = await response.json();
-                            document.getElementById('punishment-suggestion-error').textContent = data.error || 'Failed to submit suggestion';
-                            document.getElementById('punishment-suggestion-error').style.display = 'block';
-                        }
-                    } catch (err) {
-                        document.getElementById('punishment-suggestion-error').textContent = 'Network error';
-                        document.getElementById('punishment-suggestion-error').style.display = 'block';
-                    }
-                });
-            }
-        </script>
+    <!-- Current Punishment Display -->
+    <% if (currentPunishment) { %>
+        <div style="background-color: white; border: 1px solid #dee2e6; padding: 25px; margin-bottom: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="color: #495057; margin-bottom: 15px;">Current Punishment</h3>
+            <p style="color: #6c757d; margin-bottom: 10px;">Total Violations: <%= totalBroken %></p>
+            <p style="color: #dc3545; font-weight: bold;"><%= currentPunishment.punishment %></p>
+        </div>
+    <% } else { %>
+        <div style="background-color: white; border: 1px solid #dee2e6; padding: 25px; margin-bottom: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="color: #495057; margin-bottom: 15px;">No Current Punishment</h3>
+            <p style="color: #6c757d;">Total Violations: <%= totalBroken %></p>
+        </div>
     <% } %>
-    <ul id="list" style="list-style: none; padding: 0; margin-bottom: 30px;">
-        <% if (punishments && punishments.length > 0) { %>
-            <% punishments.forEach((p) => { %>
-                <li style="background-color: white; margin-bottom: 10px; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); color: #495057;"><%= p.min %>-<%= p.max %> violations: <%= p.punishment %></li>
-            <% }); %>
-        <% } else { %>
-            <h1 style="text-align: center; color: #6c757d;">N/A</h1>
-        <% } %>
-    </ul>
-    <div style="background-color: #f8d7da; padding: 20px; border-radius: 8px; border-left: 5px solid #dc3545;">
-        <h1 id="header3" style="color: #721c24; margin-bottom: 10px;">Amount Of Rules Broken: <%= totalBroken %></h1>
-        <h2 id='header3' style="color: #721c24;">Current Punishment: <%= currentPunishment ? currentPunishment.punishment : 'None' %></h2>
-    </div>
+
+    <!-- Punishment Tiers -->
+    <% if (punishments && punishments.length > 0) { %>
+        <div style="background-color: white; border: 1px solid #dee2e6; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="color: #495057; margin-bottom: 20px;">Punishment Tiers</h3>
+            <ul id="punishment" style="padding: 0;">
+                <% punishments.forEach(punishment => { %>
+                    <li id="broken" style="margin-bottom: 15px;">
+                        <strong>Range:</strong> <%= punishment.min %> - <%= punishment.max === null ? '∞' : punishment.max %>
+                        <br>
+                        <strong>Punishment:</strong> <%= punishment.punishment %>
+                    </li>
+                <% }); %>
+            </ul>
+        </div>
+    <% } else { %>
+        <div style="background-color: white; border: 1px solid #dee2e6; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="color: #495057; margin-bottom: 15px;">No Punishments Yet</h3>
+            <p style="color: #6c757d;">Punishments will be added through approved suggestions.</p>
+        </div>
+    <% } %>
 </div>

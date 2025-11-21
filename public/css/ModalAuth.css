@@ -111,3 +111,21 @@
 .modal.show .modal-dialog {
   transform: translate(0, 0);
 }
+
+@media (prefers-color-scheme: dark) {
+  .modal-content {
+    background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
+  }
+
+  .modal-header {
+    background: linear-gradient(135deg, #2d1b69 0%, #1e3a5f 100%);
+  }
+
+  .modal-form .btn-primary {
+    background: linear-gradient(135deg, #2d1b69 0%, #1e3a5f 100%);
+  }
+
+  .modal-form .btn-primary:hover:not(:disabled) {
+    box-shadow: 0 8px 20px rgba(45, 27, 105, 0.4);
+  }
+}
