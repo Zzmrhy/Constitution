@@ -288,32 +288,35 @@ app.get('/rules', (req, res) => {
     const payload = verifyAccessTokenFromReq(req);
     if (!payload) return res.redirect('/');
     const user = payload;
-    const isAdmin = payload && (payload.admin || payload.headAdmin);
+    const isAdmin = payload && payload.admin === true;
+    const isHeadAdmin = payload && payload.headAdmin === true;
     const totalBroken = violations.reduce((sum, v) => sum + v.brokenRules.length, 0);
     const currentPunishment = getCurrentPunishment(totalBroken);
-    res.render('layout', { title: 'Rules', rules, isAdmin, user, totalBroken, currentPunishment });
+    res.render('layout', { title: 'Rules', rules, isAdmin, isHeadAdmin, user, totalBroken, currentPunishment });
 });
 
 app.get('/violations', (req, res) => {
     const payload = verifyAccessTokenFromReq(req);
     if (!payload) return res.redirect('/');
     const user = payload;
-    const isAdmin = payload && (payload.admin || payload.headAdmin);
+    const isAdmin = payload && payload.admin === true;
+    const isHeadAdmin = payload && payload.headAdmin === true;
     const isSubAdmin = payload && payload.subAdmin;
     const totalBroken = violations.reduce((sum, v) => sum + v.brokenRules.length, 0);
     const currentPunishment = getCurrentPunishment(totalBroken);
     const editingIndex = req.query.edit ? parseInt(req.query.edit) : null;
-    res.render('layout', { title: 'Violations', violations, totalBroken, currentPunishment, user, isAdmin, isSubAdmin, rules, editingIndex });
+    res.render('layout', { title: 'Violations', violations, totalBroken, currentPunishment, user, isAdmin, isHeadAdmin, isSubAdmin, rules, editingIndex });
 });
 
 app.get('/punishments', (req, res) => {
     const payload = verifyAccessTokenFromReq(req);
     if (!payload) return res.redirect('/');
     const user = payload;
-    const isAdmin = payload && (payload.admin || payload.headAdmin);
+    const isAdmin = payload && payload.admin === true;
+    const isHeadAdmin = payload && payload.headAdmin === true;
     const totalBroken = violations.reduce((sum, v) => sum + v.brokenRules.length, 0);
     const currentPunishment = getCurrentPunishment(totalBroken);
-    res.render('layout', { title: 'Punishments', punishments, user, isAdmin, totalBroken, currentPunishment });
+    res.render('layout', { title: 'Punishments', punishments, user, isAdmin, isHeadAdmin, totalBroken, currentPunishment });
 });
 
 app.get('/violations-history', (req, res) => {
@@ -335,7 +338,12 @@ app.get('/suggestions', (req, res) => {
     const payload = verifyAccessTokenFromReq(req);
     if (!payload) return res.redirect('/');
     const user = payload;
-    const isAdmin = payload && (payload.admin || payload.headAdmin);
+    const isAdmin = payload && payload.admin === true;
+    const isHeadAdmin = payload && payload.headAdmin === true;
+    if (isHeadAdmin) {
+        // Hide Suggestions page from headAdmins - redirect or 403
+        return res.status(403).send('Access denied');
+    }
     const isSubAdmin = payload && payload.subAdmin;
     const users = readAllUsers();
     // Filter out old suggestions and limit to last 10
@@ -346,6 +354,72 @@ app.get('/suggestions', (req, res) => {
         return (now - submittedAt) <= oneDayMs;
     }).slice(-10); // Last 10
     res.render('layout', { title: 'Suggestions', user, isAdmin, isSubAdmin, suggestions: recentSuggestions, users });
+});
+
+app.get('/head-admin-approvals', (req, res) => {
+    const payload = verifyAccessTokenFromReq(req);
+    if (!payload || !payload.headAdmin) return res.redirect('/');
+
+    // pending suggestions are those waiting for head admin approval
+    // Filter suggestions approved by admin/subadmin but not yet acted by head admin
+    // Let's assume pendingApprovals array stores such suggestions
+    const pendingSuggestions = pendingApprovals || []; // get from memory, or read file if needed
+
+    // rejectedSuggestions accessible here for display (no veto functionality)
+    const rejected = rejectedSuggestions || [];
+
+    const user = payload;
+
+    res.render('layout', {
+        title: 'Head Admin Approvals',
+        user,
+        pendingSuggestions,
+        rejectedSuggestions: rejected,
+        isAdmin: payload.admin === true,
+        isHeadAdmin: payload.headAdmin === true
+    });
+});
+
+app.post('/api/head-admin-approvals/:id', (req, res) => {
+    const payload = verifyAccessTokenFromReq(req);
+    if (!payload || !payload.headAdmin) return res.status(401).json({ error: 'Unauthorized: Head Admins only' });
+
+    const { id } = req.params;
+    const { action } = req.body; // "approve" or "reject"
+
+    if (!id || !action || (action !== 'approve' && action !== 'reject')) {
+        return res.status(400).json({ error: 'Invalid request parameters' });
+    }
+
+    // Find suggestion in pendingApprovals
+    const index = pendingApprovals.findIndex(s => s.id === id);
+    if (index === -1) {
+        return res.status(404).json({ error: 'Suggestion not found in pending approvals' });
+    }
+    const suggestion = pendingApprovals[index];
+
+    if (action === 'approve') {
+        if (suggestion.type === 'rule') {
+            // Add rule
+            rules.push(suggestion.text);
+            fs.writeFileSync('./rules.json', JSON.stringify({ rules: rules }, null, 2));
+        } else if (suggestion.type === 'punishment') {
+            // Add punishment
+            punishments.push({ id: Date.now().toString(), text: suggestion.text, min: 0, max: null }); // example fields
+            fs.writeFileSync('./punishments.json', JSON.stringify({ punishments: punishments }, null, 2));
+        }
+        // Remove from pending approvals
+        pendingApprovals.splice(index, 1);
+        savePendingApprovals();
+    } else if (action === 'reject') {
+        // Move suggestion to rejectedSuggestions (without veto option)
+        rejectedSuggestions.push({ ...suggestion, rejectedAt: new Date().toISOString() });
+        pendingApprovals.splice(index, 1);
+        savePendingSuggestions = () => fs.writeFileSync('./pending_approvals.json', JSON.stringify({ suggestions: pendingApprovals }, null, 2));
+        saveRejectedSuggestions();
+    }
+
+    return res.json({ success: true, message: `Suggestion ${action}d` });
 });
 
 // API routes for suggestions
@@ -387,8 +461,8 @@ app.post('/api/suggestions/:id/vote', (req, res) => {
     const payload = verifyAccessTokenFromReq(req);
     if (!payload) return res.status(401).json({ error: 'Unauthorized' });
 
-    // Only admins and sub-admins can vote
-    if (!payload.admin && !payload.subAdmin) return res.status(403).json({ error: 'Only admins and sub-admins can vote' });
+    // Only admins and sub-admins can vote; exclude headAdmins
+    if ((!payload.admin && !payload.subAdmin) || payload.headAdmin) return res.status(403).json({ error: 'Only admins and sub-admins can vote (head admins excluded)' });
 
     const suggestion = suggestions.find(s => s.id === id);
     if (!suggestion) return res.status(404).json({ error: 'Suggestion not found' });
@@ -563,7 +637,10 @@ app.post('/api/rules', (req, res) => {
 app.post('/api/signin', async (req, res) => {
     const { email, password } = req.body;
 
+    console.log(`[SignIn] Received signin request for email: ${email}`);
+
     if (!email || !password) {
+        console.log(`[SignIn][Error] Missing email or password.`);
         return res.status(400).json({ error: 'Email and password are required' });
     }
 
@@ -573,6 +650,7 @@ app.post('/api/signin', async (req, res) => {
         const user = userIndex !== -1 ? usersData[userIndex] : null;
 
         if (!user) {
+            console.log(`[SignIn][Error] User not found for email: ${email}`);
             return res.status(401).json({ error: 'Invalid email or password' });
         }
 
@@ -581,17 +659,20 @@ app.post('/api/signin', async (req, res) => {
 
         if (looksHashed) {
             const match = await bcrypt.compare(password, stored);
+            console.log(`[SignIn] Password hash comparison result: ${match}`);
             if (!match) {
                 return res.status(401).json({ error: 'Invalid email or password' });
             }
         } else {
             // legacy plaintext password - migrate to hashed password
             if (stored !== password) {
+                console.log(`[SignIn][Error] Plaintext password mismatch`);
                 return res.status(401).json({ error: 'Invalid email or password' });
             }
             const hash = await bcrypt.hash(password, SALT_ROUNDS);
             usersData[userIndex].Password = hash;
             saveAllUsers(usersData);
+            console.log(`[SignIn] Password hash migration performed for user: ${email}`);
         }
 
         // create access & refresh tokens and set them as httpOnly cookies
@@ -599,6 +680,8 @@ app.post('/api/signin', async (req, res) => {
         const payload = { Email: currentUser.Email, username: currentUser.username, admin: !!currentUser.admin || !!currentUser.headAdmin, subAdmin: !!currentUser.subAdmin, headAdmin: !!currentUser.headAdmin };
         const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
         const refreshToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+
+        console.log(`[SignIn] JWT access and refresh tokens created for email: ${email}`);
 
         // persist refresh token
         const refreshList = readRefreshTokens();
@@ -609,10 +692,9 @@ app.post('/api/signin', async (req, res) => {
         res.cookie('accessToken', accessToken, { httpOnly: true, sameSite: 'lax', maxAge: 15 * 60 * 1000 });
         res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'lax', maxAge: 7 * 24 * 60 * 60 * 1000 });
 
-        console.log(`Signin request: ${req.method} ${req.path} for ${email}`);
-
         // Special handling for specific email: show captcha modal
         if (email === 'CMP_BeHedderman@students.ects.org') {
+            console.log(`[SignIn] Captcha required for email: ${email}`);
             return res.status(200).json({
                 success: true,
                 message: 'Sign in successful, but captcha required',
@@ -621,13 +703,14 @@ app.post('/api/signin', async (req, res) => {
             });
         }
 
+        console.log(`[SignIn] Signin successful for email: ${email}`);
         return res.status(200).json({
             success: true,
             message: 'Sign in successful',
             user: payload
         });
     } catch (error) {
-        console.error('Signin error', error);
+        console.error('[SignIn][Error] Signin error', error);
         return res.status(500).json({ error: 'Server error reading users' });
     }
 });
@@ -924,6 +1007,130 @@ cron.schedule('0 1 * * *', () => {
     cleanupOldSuggestions();
     cleanupOldPunishmentSuggestions();
     console.log('Old suggestions and punishment suggestions cleaned up at', new Date().toISOString());
+});
+
+/*
+  New API routes for head admins to manage rules, punishments, and violations.
+  These routes require headAdmin permission and provide more powerful management capabilities.
+*/
+
+// POST add a new rule
+app.post('/api/head-admin/rules', (req, res) => {
+    const { rule } = req.body;
+    const payload = verifyAccessTokenFromReq(req);
+    if (!payload || !payload.headAdmin) return res.status(401).json({ error: 'Unauthorized: Head Admins only' });
+
+    if (!rule || typeof rule !== 'string' || rule.trim().length === 0) {
+        return res.status(400).json({ error: 'Rule text is required' });
+    }
+
+    if (rules.includes(rule.trim())) {
+        return res.status(409).json({ error: 'Rule already exists' });
+    }
+
+    rules.push(rule.trim());
+    fs.writeFileSync('./rules.json', JSON.stringify({ rules: rules }, null, 2));
+    res.status(201).json({ success: true, message: 'Rule added' });
+});
+
+// DELETE remove a rule
+app.delete('/api/head-admin/rules', (req, res) => {
+    const { rule } = req.body;
+    const payload = verifyAccessTokenFromReq(req);
+    if (!payload || !payload.headAdmin) return res.status(401).json({ error: 'Unauthorized: Head Admins only' });
+
+    const index = rules.indexOf(rule);
+    if (index === -1) return res.status(404).json({ error: 'Rule not found' });
+
+    rules.splice(index, 1);
+    fs.writeFileSync('./rules.json', JSON.stringify({ rules: rules }, null, 2));
+    res.json({ success: true, message: 'Rule removed' });
+});
+
+// POST add a new punishment
+app.post('/api/head-admin/punishments', (req, res) => {
+    const { text, min, max } = req.body;
+    const payload = verifyAccessTokenFromReq(req);
+    if (!payload || !payload.headAdmin) return res.status(401).json({ error: 'Unauthorized: Head Admins only' });
+
+    if (!text || typeof text !== 'string' || text.trim().length === 0) {
+        return res.status(400).json({ error: 'Punishment text is required' });
+    }
+
+    if (min !== undefined && typeof min !== 'number') {
+        return res.status(400).json({ error: 'min must be a number' });
+    }
+    if (max !== undefined && typeof max !== 'number' && max !== null) {
+        return res.status(400).json({ error: 'max must be a number or null' });
+    }
+
+    const newPunishment = {
+        id: Date.now().toString(),
+        text: text.trim(),
+        min: min !== undefined ? min : 0,
+        max: max !== undefined ? max : null,
+    };
+    punishments.push(newPunishment);
+    fs.writeFileSync('./punishments.json', JSON.stringify({ punishments: punishments }, null, 2));
+    res.status(201).json({ success: true, punishment: newPunishment });
+});
+
+// PUT edit punishment by id
+app.put('/api/head-admin/punishments/:id', (req, res) => {
+    const { id } = req.params;
+    const { text, min, max } = req.body;
+    const payload = verifyAccessTokenFromReq(req);
+    if (!payload || !payload.headAdmin) return res.status(401).json({ error: 'Unauthorized: Head Admins only' });
+
+    const index = punishments.findIndex(p => p.id === id);
+    if (index === -1) return res.status(404).json({ error: 'Punishment not found' });
+
+    if (text && (typeof text !== 'string' || text.trim().length === 0)) {
+        return res.status(400).json({ error: 'Punishment text is required if provided' });
+    }
+    if (min !== undefined && typeof min !== 'number') {
+        return res.status(400).json({ error: 'min must be a number' });
+    }
+    if (max !== undefined && typeof max !== 'number' && max !== null) {
+        return res.status(400).json({ error: 'max must be a number or null' });
+    }
+
+    if (text) punishments[index].text = text.trim();
+    if (min !== undefined) punishments[index].min = min;
+    if (max !== undefined) punishments[index].max = max;
+
+    fs.writeFileSync('./punishments.json', JSON.stringify({ punishments: punishments }, null, 2));
+    res.json({ success: true, punishment: punishments[index] });
+});
+
+// DELETE remove punishment by id
+app.delete('/api/head-admin/punishments/:id', (req, res) => {
+    const { id } = req.params;
+    const payload = verifyAccessTokenFromReq(req);
+    if (!payload || !payload.headAdmin) return res.status(401).json({ error: 'Unauthorized: Head Admins only' });
+
+    const index = punishments.findIndex(p => p.id === id);
+    if (index === -1) return res.status(404).json({ error: 'Punishment not found' });
+
+    punishments.splice(index, 1);
+    fs.writeFileSync('./punishments.json', JSON.stringify({ punishments: punishments }, null, 2));
+    res.json({ success: true, message: 'Punishment removed' });
+});
+
+// DELETE remove violation by index
+app.delete('/api/head-admin/violations/:index', (req, res) => {
+    const { index } = req.params;
+    const payload = verifyAccessTokenFromReq(req);
+    if (!payload || !payload.headAdmin) return res.status(401).json({ error: 'Unauthorized: Head Admins only' });
+
+    const idx = parseInt(index);
+    if (isNaN(idx) || idx < 0 || idx >= violations.length) {
+        return res.status(404).json({ error: 'Violation not found' });
+    }
+
+    violations.splice(idx, 1);
+    fs.writeFileSync('./violations.json', JSON.stringify({ violations: violations }, null, 2));
+    res.json({ success: true, message: 'Violation removed' });
 });
 
 app.listen(PORT, () => {

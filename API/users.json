@@ -14,9 +14,9 @@
     "Password": "$2b$10$3y.jclc7KdxkP1kSqYKDcexX1cV1ekOJrivO4u70bPSF/thXZbg5e"
   },
   {
-    "admin": true,
-    "headAdmin": false,
-    "username": "vkuhl0913",
+    "admin": false,
+    "headAdmin": true,
+    "username": "Vincent Kuhl",
     "Email": "vkuhl0913@mtsd.org",
     "Password": "$2b$10$Co2EWNfvIuD3OG2l7.sgwubgV0Gg/ik4gcLAA/Z7jBmCHrcMYqdMK"
   },
@@ -24,7 +24,7 @@
     "admin": false,
     "subAdmin": false,
     "headAdmin": false,
-    "username": "CMP_BeHedderman",
+    "username": "Benjamin Hedderman",
     "Email": "CMP_BeHedderman@students.ects.org",
     "Password": "$2b$10$tgN35qDjB3IHkmSaAlaa/uFJ9jS5PcA2mcDcUnbzgM67SgVoRlByq"
   },
@@ -32,7 +32,7 @@
     "admin": false,
     "subAdmin": true,
     "headAdmin": false,
-    "username": "CMP_BrMcNeely",
+    "username": "Bradly McNeely",
     "Email": "CMP_BrMcNeely@students.ects.org",
     "Password": "$2b$10$5z0ZTkD54wUrvceuApLVkuP2VpWu3sDQvuFG/TRUwgFn3m8.NpeL."
   },
@@ -40,7 +40,7 @@
     "admin": false,
     "subAdmin": false,
     "headAdmin": false,
-    "username": "aiden.rathbun07",
+    "username": "Aiden Rathbun",
     "Email": "aiden.rathbun07@gmail.com",
     "Password": "$2b$10$nnUu6L975L3YapmZpPrTPeQJo1DVuieSu1EFHD/PZea068/y3DILK"
   }

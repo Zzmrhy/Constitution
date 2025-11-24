@@ -1,3 +1,9 @@
+<% if (isHeadAdmin) { %>
+<div style="max-width: 800px; margin: 0 auto; padding: 20px; text-align: center; color: red;">
+    <h1>403 Forbidden</h1>
+    <p>Head Admin users are not allowed to view this page.</p>
+</div>
+<% } else { %>
 <div style="max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f8f9fa; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
     <h1 id='header3' style="text-align: center; color: #17a2b8; margin-bottom: 30px;">Suggestions</h1>
 
@@ -55,6 +61,7 @@
         <% } %>
     <% } %>
 </div>
+<% } %>
 
 <script>
     // Handle suggestion submission

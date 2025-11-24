@@ -1,6 +1,6 @@
 <div style="max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f8f9fa; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
     <h1 id="header3" style="text-align: center; color: #17a2b8; margin-bottom: 30px;">Rules For Ben</h1>
-    <% if (isAdmin) { %>
+<% if (isAdmin) { %>
         <div style="background-color: #e8f4fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #007bff;">
             <h3 id='header2' style="color: #007bff; margin-bottom: 10px;">Admin Controls</h3>
             <form action="/api/rules" method="POST" style="display: inline-block;">
@@ -9,7 +9,7 @@
             </form>
         </div>
     <% } %>
-    <% if (!isAdmin) { %>
+    <% if (!isAdmin && !isHeadAdmin) { %>
         <div style="background-color: #d1ecf1; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #17a2b8;">
             <h3 id='header2' style="color: #0c5460; margin-bottom: 10px;">Suggest a New Rule</h3>
             <form id="rule-suggestion-form" style="display: inline-block;">

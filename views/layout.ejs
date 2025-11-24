@@ -26,8 +26,11 @@
                 <div><a href="/violations" id="nav">Violations</a></div>
                 <div><a href="/violations-history" id="nav">Violations History</a></div>
                 <div><a href="/punishments" id="nav">Punishments For Ben</a></div>
-                <% if (user) { %>
+                <% if (user && !user.headAdmin) { %>
                 <div><a href="/suggestions" id="nav">Suggestions</a></div>
+                <% } %>
+                <% if (user && user.headAdmin) { %>
+                <div><a href="/head-admin-approvals" id="nav">Head Admin Approvals</a></div>
                 <% } %>
             </nav>
 
@@ -97,6 +100,8 @@
                         <%- include('violations-history') %>
                     <% } else if (title === 'Suggestions') { %>
                         <%- include('suggestions') %>
+                    <% } else if (title === 'Head Admin Approvals') { %>
+                        <%- include('head-admin-approvals') %>
                     <% } %>
                 </div>
             <% } else { %>

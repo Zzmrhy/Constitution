@@ -1,38 +1,160 @@
-<div style="max-width: 800px; margin: 0 auto; padding: 40px; background-color: #f8f9fa; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-    <h1 id='header3' style="text-align: center; color: #17a2b8; margin-bottom: 40px;">Punishments</h1>
+<% if (punishments && punishments.length > 0) { %>
+  <h2>Punishments List</h2>
+  <ul style="list-style-type: none; padding: 0;">
+    <% punishments.forEach(function(punishment) { %>
+<li style="margin-bottom: 15px; border: 1px solid #ccc; padding: 10px; border-radius: 5px; position: relative;">
+        <strong>Punishment:</strong> <span class="punishment-text"><%= punishment.text || 'No punishment text set' %></span>
+        <br />
+        <!-- Removed readonly input for better UX, show only punishment text -->
+        <!--<input type="text" name="text" value="<%= punishment.text || '' %>" placeholder="Punishment Text" required style="padding: 5px; margin-top: 5px; width: 100%;" readonly>-->
+        <span class="punishment-text" style="padding: 5px; margin-top: 5px; display: inline-block; width: 100%; white-space: normal;"><%= punishment.text || 'No punishment text set' %></span>
+        
+        <% if (isHeadAdmin) { %>
+        <div style="margin-top: 8px;">
+          <button class="edit-punishment-btn" data-id="<%= punishment.id %>" style="margin-right: 10px;">Edit</button>
+          <button class="remove-punishment-btn" data-id="<%= punishment.id %>">Remove</button>
+        </div>
+        <% } %>
+      </li>
+    <% }); %>
+  </ul>
+<% } else { %>
+  <h2>No punishments available</h2>
+  <p>There are currently no punishments to display.</p>
 
-    <!-- Current Punishment Display -->
-    <% if (currentPunishment) { %>
-        <div style="background-color: white; border: 1px solid #dee2e6; padding: 25px; margin-bottom: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <h3 style="color: #495057; margin-bottom: 15px;">Current Punishment</h3>
-            <p style="color: #6c757d; margin-bottom: 10px;">Total Violations: <%= totalBroken %></p>
-            <p style="color: #dc3545; font-weight: bold;"><%= currentPunishment.punishment %></p>
-        </div>
-    <% } else { %>
-        <div style="background-color: white; border: 1px solid #dee2e6; padding: 25px; margin-bottom: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <h3 style="color: #495057; margin-bottom: 15px;">No Current Punishment</h3>
-            <p style="color: #6c757d;">Total Violations: <%= totalBroken %></p>
-        </div>
-    <% } %>
+<% } %>
 
-    <!-- Punishment Tiers -->
-    <% if (punishments && punishments.length > 0) { %>
-        <div style="background-color: white; border: 1px solid #dee2e6; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <h3 style="color: #495057; margin-bottom: 20px;">Punishment Tiers</h3>
-            <ul id="punishment" style="padding: 0;">
-                <% punishments.forEach(punishment => { %>
-                    <li id="broken" style="margin-bottom: 15px;">
-                        <strong>Range:</strong> <%= punishment.min %> - <%= punishment.max === null ? '∞' : punishment.max %>
-                        <br>
-                        <strong>Punishment:</strong> <%= punishment.punishment %>
-                    </li>
-                <% }); %>
-            </ul>
-        </div>
-    <% } else { %>
-        <div style="background-color: white; border: 1px solid #dee2e6; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <h3 style="color: #495057; margin-bottom: 15px;">No Punishments Yet</h3>
-            <p style="color: #6c757d;">Punishments will be added through approved suggestions.</p>
-        </div>
-    <% } %>
+<!-- Edit Punishment Modal -->
+<div id="editModal" class="modal" style="display:none; position: fixed; z-index:1000; left:0; top:0; width:100%; height:100%; overflow:auto; background-color: rgba(0,0,0,0.6);">
+  <div class="modal-content" style="background:#fff; margin: 10% auto; padding: 20px; border-radius: 10px; width: 400px; position: relative;">
+    <span class="close" style="position: absolute; right: 15px; top: 10px; font-size: 28px; cursor:pointer;">&times;</span>
+    <h3>Edit Punishment</h3>
+    <p id="violationsCount"></p>
+    <textarea id="editPunishmentText" rows="4" style="width: 100%; padding: 5px; font-size: 16px;"></textarea>
+    <button id="saveEditBtn" style="margin-top: 15px;">Save</button>
+  </div>
 </div>
+
+<script>
+  (function() {
+    const removeButtons = document.querySelectorAll('.remove-punishment-btn');
+    const editButtons = document.querySelectorAll('.edit-punishment-btn');
+    const modal = document.getElementById('editModal');
+    const modalClose = modal.querySelector('.close');
+    const editTextArea = document.getElementById('editPunishmentText');
+    const saveBtn = document.getElementById('saveEditBtn');
+    const violationsCountElem = document.getElementById('violationsCount');
+
+    let currentPunishmentId = null;
+
+    // Since this is inline and punishments array is not defined here, we want to expose it
+    const punishments = <%- JSON.stringify(punishments || []) %>;
+    window.punishments = punishments; // expose globally for debugging
+
+    // Helper to fetch violations count for a punishment by counting violations with brokenRules length in punishment min-max range
+    async function fetchViolationsCount(punishmentId) {
+      try {
+        const response = await fetch('/api/violations');
+        const data = await response.json();
+        if (!data || !data.violations) return 0;
+
+        const punishmentItem = punishments.find(p => p.id === punishmentId);
+        if (!punishmentItem) return 0;
+
+        const min = punishmentItem.min || 0;
+        const max = punishmentItem.max === null ? Infinity : punishmentItem.max;
+
+        const count = data.violations.filter(v => {
+          const brCount = v.brokenRules.length || 0;
+          return brCount >= min && brCount <= max;
+        }).length;
+        return count;
+      } catch (err) {
+        return 0;
+      }
+    }
+
+    // Remove punishment handler
+    removeButtons.forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        if (!confirm('Are you sure you want to remove this punishment?')) return;
+
+        try {
+          const res = await fetch(`/api/head-admin/punishments/${id}`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          if (res.ok) {
+            alert('Punishment removed');
+            location.reload();
+          } else {
+            alert('Failed to remove punishment');
+          }
+        } catch (err) {
+          alert('Error removing punishment');
+        }
+      });
+    });
+
+    // Edit punishment handler
+    editButtons.forEach(btn => {
+      btn.addEventListener('click', async () => {
+        currentPunishmentId = btn.getAttribute('data-id');
+        const punishment = punishments.find(p => p.id === currentPunishmentId);
+        if (!punishment) return;
+
+        editTextArea.value = punishment.text;
+
+        // Fetch and display violations count
+        const count = await fetchViolationsCount(currentPunishmentId);
+        violationsCountElem.textContent = `Number of violations for this punishment: ${count}`;
+
+        modal.style.display = 'block';
+      });
+    });
+
+    modalClose.addEventListener('click', () => {
+      modal.style.display = 'none';
+      currentPunishmentId = null;
+    });
+
+    window.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+        currentPunishmentId = null;
+      }
+    });
+
+    saveBtn.addEventListener('click', async () => {
+      if (!currentPunishmentId) return alert('No punishment selected');
+
+      const newText = editTextArea.value.trim();
+      if (!newText) return alert('Punishment text cannot be empty');
+
+      try {
+        const res = await fetch(`/api/head-admin/punishments/${currentPunishmentId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ text: newText })
+        });
+
+        if (res.ok) {
+          alert('Punishment updated');
+          modal.style.display = 'none';
+          currentPunishmentId = null;
+          location.reload();
+        } else {
+          const data = await res.json();
+          alert('Failed to update punishment: ' + (data.error || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Error updating punishment');
+      }
+    });
+  })();
+</script>
