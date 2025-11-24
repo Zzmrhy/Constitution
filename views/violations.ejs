@@ -2,7 +2,7 @@
     <h1 id='header3' style="text-align: center; color: #17a2b8; margin-bottom: 40px;">Violations</h1>
 
     <!-- Form for adding violations (visible to admins and sub-admins) -->
-    <% if (isAdmin || isSubAdmin) { %>
+    <% if (isAdmin || isSubAdmin || isHeadAdmin) { %>
         <div style="background-color: white; border: 1px solid #dee2e6; padding: 25px; margin-bottom: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             <h3 style="color: #495057; margin-bottom: 20px;">Add a Violation</h3>
             <form id="violation-form">
@@ -12,7 +12,6 @@
             <div id="violation-error" style="color: red; display: none; margin-top: 15px;"></div>
         </div>
     <% } %>
-
     <!-- Display violations -->
     <% if (violations && violations.length > 0) { %>
         <% violations.forEach((violation, index) => { %>
@@ -20,7 +19,7 @@
                 <h3 style="color: #495057; margin-bottom: 15px;"><%= violation.brokenRules.join(', ') %></h3>
                 <p style="color: #6c757d; margin-bottom: 15px;">Date: <%= new Date(violation.date).toLocaleString() %></p>
                 <!-- Delete button for admins and sub-admins -->
-                <% if (isAdmin || isSubAdmin) { %>
+                <% if (isAdmin || isSubAdmin || isHeadAdmin) { %>
                     <form class="delete-form" data-id="<%= index %>" style="display: inline; margin-top: 15px;">
                         <button type="submit" id='btn' style="background-color: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">Delete</button>
                     </form>
