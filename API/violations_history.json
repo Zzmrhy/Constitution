@@ -166,5 +166,59 @@
         ]
       }
     ]
+  },
+  {
+    "archivedAt": 1764003771157,
+    "periodStart": 1763398962862,
+    "violations": [
+      {
+        "date": "2025-11-18",
+        "brokenRules": [
+          "Ben may not do that"
+        ]
+      },
+      {
+        "date": "2025-11-18",
+        "brokenRules": [
+          "Ben may not fart"
+        ]
+      },
+      {
+        "date": "2025-11-18",
+        "brokenRules": [
+          "Ben may not touch the scooter"
+        ]
+      },
+      {
+        "date": "2025-11-18",
+        "brokenRules": [
+          "Ben may not be the reason for a fire"
+        ]
+      },
+      {
+        "date": "2025-11-18",
+        "brokenRules": [
+          "No office time for ben"
+        ]
+      },
+      {
+        "date": "2025-11-18",
+        "brokenRules": [
+          "Ben shall not become unprofessional"
+        ]
+      },
+      {
+        "date": "2025-11-20T18:26:22.444Z",
+        "brokenRules": [
+          "Ben made an adult joke"
+        ]
+      },
+      {
+        "date": "2025-11-20T18:26:55.300Z",
+        "brokenRules": [
+          "Ben committed adultery with his computer"
+        ]
+      }
+    ]
   }
 ]
