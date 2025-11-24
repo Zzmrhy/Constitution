@@ -27,9 +27,12 @@
                     <h3 style="color: #495057;"><%= suggestion.text %></h3>
                     <p style="color: #6c757d;">Submitted by: <%= suggestion.submittedBy %> on <%= new Date(suggestion.submittedAt).toLocaleString() %></p>
                     <%
-                        let totalEligibleVoters = users.filter(u => u.admin || u.subAdmin).length;
-                        if (suggestion.submittedBy && users.find(u => u.Email === suggestion.submittedBy && u.subAdmin)) {
-                            totalEligibleVoters -= 1;
+                        let totalEligibleVoters = 0;
+                        if (Array.isArray(users)) {
+                            totalEligibleVoters = users.filter(u => u.admin || u.subAdmin).length;
+                            if (suggestion.submittedBy && users.find(u => u.Email === suggestion.submittedBy && u.subAdmin)) {
+                                totalEligibleVoters -= 1;
+                            }
                         }
                         const approveCount = suggestion.votes.approve.length;
                         const rejectCount = suggestion.votes.reject.length;

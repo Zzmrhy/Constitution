@@ -5,6 +5,9 @@
 <li style="margin-bottom: 15px; border: 1px solid #ccc; padding: 10px; border-radius: 5px; position: relative;">
         <strong>Punishment:</strong> <span class="punishment-text"><%= punishment.text || 'No punishment text set' %></span>
         <br />
+        <small style="display: block; margin-top: 5px;">
+          Min Violations: <%= punishment.min %>, Max Violations: <%= punishment.max === null ? 'No limit' : punishment.max %>
+        </small>
         <!-- Removed readonly input for better UX, show only punishment text -->
         <!--<input type="text" name="text" value="<%= punishment.text || '' %>" placeholder="Punishment Text" required style="padding: 5px; margin-top: 5px; width: 100%;" readonly>-->
         <span class="punishment-text" style="padding: 5px; margin-top: 5px; display: inline-block; width: 100%; white-space: normal;"><%= punishment.text || 'No punishment text set' %></span>
@@ -128,19 +131,23 @@
       }
     });
 
-    saveBtn.addEventListener('click', async () => {
+saveBtn.addEventListener('click', async () => {
       if (!currentPunishmentId) return alert('No punishment selected');
 
       const newText = editTextArea.value.trim();
       if (!newText) return alert('Punishment text cannot be empty');
 
       try {
+        // Send min and max also to preserve ranges if they are not edited here
+        const punishment = punishments.find(p => p.id === currentPunishmentId);
+        if (!punishment) return alert('Punishment not found');
+
         const res = await fetch(`/api/head-admin/punishments/${currentPunishmentId}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ text: newText })
+          body: JSON.stringify({ text: newText, min: punishment.min, max: punishment.max })
         });
 
         if (res.ok) {

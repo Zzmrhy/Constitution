@@ -1,66 +1,79 @@
 {
   "punishments": [
     {
+      "id": "1",
       "min": 1,
       "max": 4,
-      "punishment": "We Call Ben's Mom To Give Ben A Spanking"
+      "punishment": "We Call Ben's Mom To Have Her Give Ben A Spanking"
     },
     {
+      "id": "2",
       "min": 5,
       "max": 9,
       "punishment": "We Call Ben's Dad To Have Him Give Ben A Stern Talking To"
     },
     {
+      "id": "3",
       "min": 10,
       "max": 14,
       "punishment": "We Call Ben's Grandma To Have Her Throw A Shoe At Ben"
     },
     {
+      "id": "4",
       "min": 15,
       "max": 19,
       "punishment": "Ball"
     },
     {
+      "id": "5",
       "min": 20,
       "max": 24,
       "punishment": "Anthony Will Beat Ben With A Shoe"
     },
     {
+      "id": "6",
       "min": 25,
       "max": 29,
       "punishment": "Ben Loses A Card"
     },
     {
+      "id": "7",
       "min": 30,
       "max": 34,
       "punishment": "Vince Will Whip Ben With A Belt"
     },
     {
+      "id": "8",
       "min": 35,
       "max": 39,
       "punishment": "The DOBA Council Will Decide Ben's Fate"
     },
     {
+      "id": "9",
       "min": 40,
       "max": 44,
       "punishment": "Logan May Stone Ben"
     },
     {
+      "id": "10",
       "min": 45,
       "max": 49,
       "punishment": "Mr. Klins Has Permission To Throw Ben Through The Door"
     },
     {
+      "id": "11",
       "min": 50,
       "max": 54,
       "punishment": "Ben Get's Locked Inside Networking"
     },
     {
+      "id": "12",
       "min": 55,
       "max": 59,
       "punishment": "Ben's Project Must Be Reset"
     },
     {
+      "id": "13",
       "min": 100,
       "max": null,
       "punishment": "1941 Will Be Caused By Yours Truly"

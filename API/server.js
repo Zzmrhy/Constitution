@@ -59,6 +59,17 @@ let violations = violationsData.violations.map(v => {
   return v;
 });
 let lastReset = lastResetData.lastReset;
+
+// Validate lastReset on server start and reset if invalid or in future
+(function validateLastReset() {
+    const now = Date.now();
+    if (!lastReset || typeof lastReset !== 'number' || lastReset > now) {
+        // Reset to last Monday 1:00 PM
+        lastReset = getNextMonday1PM(now - 7 * 24 * 60 * 60 * 1000).getTime();
+        fs.writeFileSync('./lastReset.json', JSON.stringify({ lastReset }, null, 2));
+        console.log('lastReset was invalid or in future. Resetting to', new Date(lastReset).toISOString());
+    }
+})();
 let suggestions = suggestionsData.suggestions || [];
 let punishmentSuggestions = punishmentSuggestionsData.suggestions || [];
 let pendingApprovals = pendingApprovalsData.suggestions || [];
@@ -118,26 +129,26 @@ function saveViolationsHistory(list) {
     fs.writeFileSync('./violations_history.json', JSON.stringify(list, null, 2));
 }
 
-// Function to get the next Monday at 1:00 AM after a given timestamp
-function getNextMonday1AM(timestamp) {
+// Function to get the next Monday at 1:00 PM after a given timestamp
+function getNextMonday1PM(timestamp) {
     const date = new Date(timestamp);
     const dayOfWeek = date.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
     let daysUntilMonday = (1 - dayOfWeek + 7) % 7;
-    if (daysUntilMonday === 0 && date.getHours() < 1) {
-        // If it's Monday before 1 AM, next is today at 1 AM
+    if (daysUntilMonday === 0 && date.getHours() < 13) {
+        // If it's Monday before 1 PM, next is today at 1 PM
         daysUntilMonday = 0;
     } else if (daysUntilMonday === 0) {
-        // If it's Monday after 1 AM, next is next Monday
+        // If it's Monday after 1 PM, next is next Monday
         daysUntilMonday = 7;
     }
     date.setDate(date.getDate() + daysUntilMonday);
-    date.setHours(1, 0, 0, 0);
+    date.setHours(13, 0, 0, 0);
     return date;
 }
 
 // Check if violations need to be reset on startup
 const now = new Date();
-const nextReset = getNextMonday1AM(lastReset);
+const nextReset = getNextMonday1PM(lastReset);
 if (now >= nextReset) {
     // Archive existing violations before clearing
     try {
@@ -287,36 +298,77 @@ app.get('/', (req, res) => {
 app.get('/rules', (req, res) => {
     const payload = verifyAccessTokenFromReq(req);
     if (!payload) return res.redirect('/');
+
+    // Reload rules from file to get latest data
+    let currentRules = [];
+    try {
+        const rulesData = JSON.parse(fs.readFileSync(path.join(__dirname, "rules.json"), 'utf8'));
+        currentRules = rulesData.rules || [];
+    } catch (err) {
+        console.error("Failed to load rules.json", err);
+    }
+
     const user = payload;
     const isAdmin = payload && payload.admin === true;
     const isHeadAdmin = payload && payload.headAdmin === true;
     const totalBroken = violations.reduce((sum, v) => sum + v.brokenRules.length, 0);
     const currentPunishment = getCurrentPunishment(totalBroken);
-    res.render('layout', { title: 'Rules', rules, isAdmin, isHeadAdmin, user, totalBroken, currentPunishment });
+
+    res.render('layout', { title: 'Rules', rules: currentRules, isAdmin, isHeadAdmin, user, totalBroken, currentPunishment });
 });
 
 app.get('/violations', (req, res) => {
     const payload = verifyAccessTokenFromReq(req);
     if (!payload) return res.redirect('/');
+
+    // Reload violations from file to get latest data
+    let currentViolations = [];
+    try {
+        const violationsData = JSON.parse(fs.readFileSync(path.join(__dirname, "violations.json"), 'utf8'));
+        currentViolations = violationsData.violations || [];
+    } catch (err) {
+        console.error("Failed to load violations.json", err);
+    }
+
     const user = payload;
     const isAdmin = payload && payload.admin === true;
     const isHeadAdmin = payload && payload.headAdmin === true;
     const isSubAdmin = payload && payload.subAdmin;
-    const totalBroken = violations.reduce((sum, v) => sum + v.brokenRules.length, 0);
+    const totalBroken = currentViolations.reduce((sum, v) => sum + v.brokenRules.length, 0);
     const currentPunishment = getCurrentPunishment(totalBroken);
     const editingIndex = req.query.edit ? parseInt(req.query.edit) : null;
-    res.render('layout', { title: 'Violations', violations, totalBroken, currentPunishment, user, isAdmin, isHeadAdmin, isSubAdmin, rules, editingIndex });
+
+    res.render('layout', { title: 'Violations', violations: currentViolations, totalBroken, currentPunishment, user, isAdmin, isHeadAdmin, isSubAdmin, rules, editingIndex, lastReset });
 });
 
 app.get('/punishments', (req, res) => {
     const payload = verifyAccessTokenFromReq(req);
     if (!payload) return res.redirect('/');
+
+    // Reload punishments from file to get latest data
+    let currentPunishments = [];
+    try {
+        const punishmentsData = JSON.parse(fs.readFileSync(path.join(__dirname, "punishments.json"), 'utf8'));
+        currentPunishments = punishmentsData.punishments || [];
+    } catch (err) {
+        console.error("Failed to load punishments.json", err);
+    }
+
+    // Map punishments to add id and rename punishment -> text, as expected by the view
+    const mappedPunishments = currentPunishments.map((p, idx) => ({
+        id: p.id || idx.toString(),
+        text: p.punishment || '',
+        min: p.min,
+        max: p.max
+    }));
+
     const user = payload;
     const isAdmin = payload && payload.admin === true;
     const isHeadAdmin = payload && payload.headAdmin === true;
     const totalBroken = violations.reduce((sum, v) => sum + v.brokenRules.length, 0);
     const currentPunishment = getCurrentPunishment(totalBroken);
-    res.render('layout', { title: 'Punishments', punishments, user, isAdmin, isHeadAdmin, totalBroken, currentPunishment });
+
+    res.render('layout', { title: 'Punishments', punishments: mappedPunishments, user, isAdmin, isHeadAdmin, totalBroken, currentPunishment });
 });
 
 app.get('/violations-history', (req, res) => {
@@ -345,7 +397,19 @@ app.get('/suggestions', (req, res) => {
         return res.status(403).send('Access denied');
     }
     const isSubAdmin = payload && payload.subAdmin;
-    const users = readAllUsers();
+
+    let users = [];
+    try {
+        users = readAllUsers();
+        if (!Array.isArray(users)) {
+            console.error('readAllUsers() did not return an array, defaulting to empty array.');
+            users = [];
+        }
+    } catch (err) {
+        console.error('Error reading users in /suggestions route:', err);
+        users = [];
+    }
+
     // Filter out old suggestions and limit to last 10
     const now = new Date();
     const oneDayMs = 24 * 60 * 60 * 1000;
@@ -353,7 +417,7 @@ app.get('/suggestions', (req, res) => {
         const submittedAt = new Date(s.submittedAt);
         return (now - submittedAt) <= oneDayMs;
     }).slice(-10); // Last 10
-    res.render('layout', { title: 'Suggestions', user, isAdmin, isSubAdmin, suggestions: recentSuggestions, users });
+    res.render('layout', { title: 'Suggestions', user, isAdmin, isSubAdmin, isHeadAdmin, suggestions: recentSuggestions, users });
 });
 
 app.get('/head-admin-approvals', (req, res) => {
@@ -495,19 +559,27 @@ app.post('/api/suggestions/:id/vote', (req, res) => {
     const neededForRejection = Math.ceil(totalEligibleVoters / 2) + 1;
 
     if (approveCount >= neededForApproval) {
-        // Add to rules
-        rules.push(suggestion.text);
-        fs.writeFileSync('./rules.json', JSON.stringify({ rules }, null, 2));
-        // Remove suggestion
+        // Move to pendingApprovals instead of adding to rules
+        pendingApprovals.push({
+            id: suggestion.id,
+            text: suggestion.text,
+            submittedBy: suggestion.submittedBy,
+            submittedAt: suggestion.submittedAt,
+            votes: suggestion.votes,
+            type: 'rule'
+        });
+        // Remove from suggestions
         suggestions = suggestions.filter(s => s.id !== id);
+        savePendingApprovals();
     } else if (rejectCount >= neededForRejection) {
         // Add to rejected
         rejectedSuggestions.push({ ...suggestion, rejectedAt: new Date().toISOString(), type: 'rule' });
-        // Remove suggestion
+        // Remove from suggestions
         suggestions = suggestions.filter(s => s.id !== id);
     }
 
     saveSuggestions();
+    saveRejectedSuggestions();
     res.json({ success: true, suggestion });
 });
 
@@ -584,9 +656,18 @@ app.post('/api/punishment-suggestions/:id/vote', (req, res) => {
     const neededForRejection = Math.ceil(totalEligibleVoters / 2) + 1;
 
     if (approveCount >= neededForApproval) {
-        // Approved, but not auto-added - head admin must add manually
-        // Remove suggestion
+        // Move to pendingApprovals instead of immediate action (head admin approval)
+        pendingApprovals.push({
+            id: suggestion.id,
+            text: suggestion.text,
+            submittedBy: suggestion.submittedBy,
+            submittedAt: suggestion.submittedAt,
+            votes: suggestion.votes,
+            type: 'punishment'
+        });
+        // Remove from punishmentSuggestions
         punishmentSuggestions = punishmentSuggestions.filter(s => s.id !== id);
+        savePendingApprovals();
     } else if (rejectCount >= neededForRejection) {
         // Add to rejected
         rejectedSuggestions.push({ ...suggestion, rejectedAt: new Date().toISOString(), type: 'punishment' });
@@ -595,6 +676,7 @@ app.post('/api/punishment-suggestions/:id/vote', (req, res) => {
     }
 
     savePunishmentSuggestions();
+    saveRejectedSuggestions();
     res.json({ success: true, suggestion });
 });
 
@@ -616,20 +698,39 @@ app.get('/api/rules', (req, res) => {
 app.post('/api/rules', (req, res) => {
     const { rule, _method, redirect } = req.body;
     const payload = verifyAccessTokenFromReq(req);
-    if (!payload || !payload.admin) return res.status(401).json({ error: 'Unauthorized: Admins only' });
+    if (!payload || (!(payload.admin || payload.headAdmin))) {
+        return res.status(401).json({ error: 'Unauthorized: Admins or Head Admins only' });
+    }
+
+    // Reload rules from file to get latest data for consistency
+    let currentRules = [];
+    try {
+        const rulesData = JSON.parse(fs.readFileSync(path.join(__dirname, "rules.json"), 'utf8'));
+        currentRules = rulesData.rules || [];
+    } catch (err) {
+        console.error("Failed to load rules.json", err);
+    }
 
     if (_method === 'DELETE') {
-        const index = rules.indexOf(rule);
+        // Allow both admin and headAdmin to delete rules
+        if (!(payload.admin || payload.headAdmin)) {
+            return res.status(401).json({ error: 'Unauthorized: Admins or Head Admins only' });
+        }
+        const index = currentRules.indexOf(rule);
         if (index !== -1) {
-            rules.splice(index, 1);
-            fs.writeFileSync('./rules.json', JSON.stringify({rules: rules}, null, 2));
+            currentRules.splice(index, 1);
+            fs.writeFileSync('./rules.json', JSON.stringify({ rules: currentRules }, null, 2));
             return res.redirect('/rules');
         } else {
-            return res.status(404).json({error: "Rule not found"});
+            return res.status(404).json({ error: "Rule not found" });
         }
     } else {
-        rules.push(rule);
-        fs.writeFileSync('./rules.json', JSON.stringify({rules: rules}, null, 2));
+        // Only admin can add rules, headAdmin cannot add
+        if (!payload.admin) {
+            return res.status(403).json({ error: 'Forbidden: Head Admins cannot add rules' });
+        }
+        currentRules.push(rule);
+        fs.writeFileSync('./rules.json', JSON.stringify({ rules: currentRules }, null, 2));
         res.redirect(redirect || '/rules');
     }
 });
@@ -980,7 +1081,8 @@ app.delete('/api/violations/:index', async (req, res) => {
 });
 
 // Schedule to reset violations every Monday at 1:00 AM
-cron.schedule('0 1 * * 1', () => {
+// Schedule to reset violations every Monday at 1:00 PM
+cron.schedule('0 13 * * 1', () => {
     const now = new Date();
     try {
         // Archive current violations before clearing
@@ -1000,6 +1102,40 @@ cron.schedule('0 1 * * 1', () => {
     lastReset = Date.now();
     fs.writeFileSync('./lastReset.json', JSON.stringify({lastReset: lastReset}, null, 2));
     console.log('Violations archived and reset at', new Date().toISOString());
+});
+
+// New manual cleanup endpoint to archive and clear violations if Monday 1:00 PM passed since last reset
+app.post('/api/violations/cleanup', (req, res) => {
+    const payload = verifyAccessTokenFromReq(req);
+    if (!payload || !(payload.admin || payload.headAdmin)) return res.status(401).json({ error: 'Unauthorized: Admin or Head Admin only' });
+
+    const now = new Date();
+    const nextReset = getNextMonday1PM(lastReset);
+
+    if (now < nextReset) {
+        return res.status(400).json({ error: 'Cleanup not allowed before Monday 1:00 PM' });
+    }
+
+    try {
+        const history = readViolationsHistory();
+        history.push({
+            archivedAt: now.getTime(),
+            periodStart: lastReset || null,
+            violations: violations
+        });
+        saveViolationsHistory(history);
+
+        // Clear current violations and update lastReset timestamp
+        violations = [];
+        fs.writeFileSync('./violations.json', JSON.stringify({violations: []}, null, 2));
+        lastReset = now.getTime();
+        fs.writeFileSync('./lastReset.json', JSON.stringify({lastReset: lastReset}, null, 2));
+    } catch (err) {
+        console.error('Failed to perform manual violations cleanup', err);
+        return res.status(500).json({ error: 'Failed to perform cleanup' });
+    }
+
+    return res.json({ success: true, message: 'Violations archived and reset successfully' });
 });
 
 // Schedule to clean up old suggestions every day at 1:00 AM
@@ -1095,7 +1231,7 @@ app.put('/api/head-admin/punishments/:id', (req, res) => {
         return res.status(400).json({ error: 'max must be a number or null' });
     }
 
-    if (text) punishments[index].text = text.trim();
+    if (text) punishments[index].punishment = text.trim();
     if (min !== undefined) punishments[index].min = min;
     if (max !== undefined) punishments[index].max = max;
 
@@ -1131,6 +1267,35 @@ app.delete('/api/head-admin/violations/:index', (req, res) => {
     violations.splice(idx, 1);
     fs.writeFileSync('./violations.json', JSON.stringify({ violations: violations }, null, 2));
     res.json({ success: true, message: 'Violation removed' });
+});
+
+app.get('/api/lastReset', (req, res) => {
+    res.json({ lastReset });
+});
+
+app.get('/api/server-time', (req, res) => {
+    res.json({ serverTime: new Date().toString() });
+});
+
+// Admin endpoint to update lastReset value (for testing purpose)
+app.post('/api/admin/update-lastReset', (req, res) => {
+    const payload = verifyAccessTokenFromReq(req);
+    if (!payload || !(payload.admin || payload.headAdmin)) {
+        return res.status(401).json({ error: 'Unauthorized: Admin or Head Admin only' });
+    }
+    const { lastReset: newLastReset } = req.body;
+    if (!newLastReset || typeof newLastReset !== 'number') {
+        return res.status(400).json({ error: 'Invalid lastReset timestamp' });
+    }
+
+    try {
+        lastReset = newLastReset;
+        fs.writeFileSync('./lastReset.json', JSON.stringify({ lastReset: lastReset }, null, 2));
+        return res.json({ success: true, message: 'lastReset updated' });
+    } catch (err) {
+        console.error('Failed to update lastReset', err);
+        return res.status(500).json({ error: 'Failed to update lastReset' });
+    }
 });
 
 app.listen(PORT, () => {

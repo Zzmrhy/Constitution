@@ -10,8 +10,21 @@
                 <button type="submit" id='btn' style="background-color: #007bff; color: white; border: none; padding: 12px 25px; border-radius: 4px; cursor: pointer;">Add Violation</button>
             </form>
             <div id="violation-error" style="color: red; display: none; margin-top: 15px;"></div>
+            <% if (isAdmin || isHeadAdmin) { %>
+            <!-- Manual cleanup button removed as per updated cleanup schedule -->
+            <% } %>
         </div>
     <% } %>
+
+<script>
+    // Last server reset timestamp passed from server
+    const lastReset = <%- JSON.stringify(lastReset) %>;
+
+    // Function to format date time for display
+    function formatDateTime(date) {
+        return date.toLocaleString();
+    }
+</script>
     <!-- Display violations -->
     <% if (violations && violations.length > 0) { %>
         <% violations.forEach((violation, index) => { %>
@@ -82,4 +95,5 @@
             }
         });
     });
+
 </script>

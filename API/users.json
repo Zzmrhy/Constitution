@@ -1,7 +1,7 @@
 [
   {
-    "admin": false,
-    "headAdmin": true,
+    "admin": true,
+    "headAdmin": false,
     "username": "Aiden Rathbun",
     "Email": "aidenrathun@gmail.com",
     "Password": "$2b$10$Eqfq9yZYQBmze2fIIPeJt.vg4tuUdcawdv.AA61GDS0F/VwIT1DKe"
