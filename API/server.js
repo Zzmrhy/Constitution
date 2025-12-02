@@ -286,7 +286,7 @@ function saveVetoedSuggestions() {
 
 const SALT_ROUNDS = 10;
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 5000;
 
 // Routes for rendering EJS views (moved to top to avoid conflict with API routes)
 app.get('/', (req, res) => {
@@ -365,10 +365,160 @@ app.get('/punishments', (req, res) => {
     const user = payload;
     const isAdmin = payload && payload.admin === true;
     const isHeadAdmin = payload && payload.headAdmin === true;
+    const isSubAdmin = payload && payload.subAdmin;
     const totalBroken = violations.reduce((sum, v) => sum + v.brokenRules.length, 0);
     const currentPunishment = getCurrentPunishment(totalBroken);
 
-    res.render('layout', { title: 'Punishments', punishments: mappedPunishments, user, isAdmin, isHeadAdmin, totalBroken, currentPunishment });
+    res.render('layout', { title: 'Punishments', punishments: mappedPunishments, user, isAdmin, isHeadAdmin, isSubAdmin, totalBroken, currentPunishment });
+});
+
+app.get('/rules', (req, res) => {
+    const payload = verifyAccessTokenFromReq(req);
+    if (!payload) return res.redirect('/');
+
+    // Reload rules from file to get latest data
+    let currentRules = [];
+    try {
+        const rulesData = JSON.parse(fs.readFileSync(path.join(__dirname, "rules.json"), 'utf8'));
+        currentRules = rulesData.rules || [];
+    } catch (err) {
+        console.error("Failed to load rules.json", err);
+    }
+
+    const user = payload;
+    const isAdmin = payload && payload.admin === true;
+    const isHeadAdmin = payload && payload.headAdmin === true;
+    const totalBroken = violations.reduce((sum, v) => sum + v.brokenRules.length, 0);
+    const currentPunishment = getCurrentPunishment(totalBroken);
+
+    res.render('layout', { title: 'Rules', rules: currentRules, isAdmin, isHeadAdmin, user, totalBroken, currentPunishment });
+});
+
+app.get('/rules', (req, res) => {
+    const payload = verifyAccessTokenFromReq(req);
+    if (!payload) return res.redirect('/');
+
+    // Reload rules from file to get latest data
+    let currentRules = [];
+    try {
+        const rulesData = JSON.parse(fs.readFileSync(path.join(__dirname, "rules.json"), 'utf8'));
+        currentRules = rulesData.rules || [];
+    } catch (err) {
+        console.error("Failed to load rules.json", err);
+    }
+
+    const user = payload;
+    const isAdmin = payload && payload.admin === true;
+    const isHeadAdmin = payload && payload.headAdmin === true;
+    const isSubAdmin = payload && payload.subAdmin;
+    const totalBroken = violations.reduce((sum, v) => sum + v.brokenRules.length, 0);
+    const currentPunishment = getCurrentPunishment(totalBroken);
+
+    res.render('layout', { title: 'Rules', rules: currentRules, isAdmin, isHeadAdmin, isSubAdmin, user, totalBroken, currentPunishment });
+});
+
+app.get('/violations-history', (req, res) => {
+    const payload = verifyAccessTokenFromReq(req);
+    if (!payload) return res.redirect('/');
+
+    const user = payload;
+    const history = readViolationsHistory();
+    res.render('layout', { title: 'Violations History', history, user });
+});
+
+app.get('/violations-history', (req, res) => {
+    const payload = verifyAccessTokenFromReq(req);
+    if (!payload) return res.redirect('/');
+
+    const user = payload;
+    const isSubAdmin = payload && payload.subAdmin;
+    const history = readViolationsHistory();
+    res.render('layout', { title: 'Violations History', history, user, isSubAdmin });
+});
+
+app.get('/head-admin-approvals', (req, res) => {
+    const payload = verifyAccessTokenFromReq(req);
+    if (!payload || !payload.headAdmin) return res.redirect('/');
+
+    // pending suggestions are those waiting for head admin approval
+    // Filter suggestions approved by admin/subadmin but not yet acted by head admin
+    // Let's assume pendingApprovals array stores such suggestions
+    const pendingSuggestions = pendingApprovals || []; // get from memory, or read file if needed
+
+    // rejectedSuggestions accessible here for display (no veto functionality)
+    const rejected = rejectedSuggestions || [];
+
+    const user = payload;
+
+    res.render('layout', {
+        title: 'Head Admin Approvals',
+        user,
+        pendingSuggestions,
+        rejectedSuggestions: rejected,
+        isAdmin: payload.admin === true,
+        isHeadAdmin: payload.headAdmin === true
+    });
+});
+
+app.get('/head-admin-approvals', (req, res) => {
+    const payload = verifyAccessTokenFromReq(req);
+    if (!payload || !payload.headAdmin) return res.redirect('/');
+
+    // pending suggestions are those waiting for head admin approval
+    // Filter suggestions approved by admin/subadmin but not yet acted by head admin
+    // Let's assume pendingApprovals array stores such suggestions
+    const pendingSuggestions = pendingApprovals || []; // get from memory, or read file if needed
+
+    // rejectedSuggestions accessible here for display (no veto functionality)
+    const rejected = rejectedSuggestions || [];
+
+    const user = payload;
+    const isSubAdmin = payload && payload.subAdmin;
+
+    res.render('layout', {
+        title: 'Head Admin Approvals',
+        user,
+        pendingSuggestions,
+        rejectedSuggestions: rejected,
+        isAdmin: payload.admin === true,
+        isHeadAdmin: payload.headAdmin === true,
+        isSubAdmin
+    });
+});
+
+app.get('/suggestions', (req, res) => {
+    const payload = verifyAccessTokenFromReq(req);
+    if (!payload) return res.redirect('/');
+
+    const user = payload;
+    const isAdmin = payload && payload.admin === true;
+    const isHeadAdmin = payload && payload.headAdmin === true;
+    if (isHeadAdmin) {
+        // Hide Suggestions page from headAdmins - redirect or 403
+        return res.status(403).send('Access denied');
+    }
+    const isSubAdmin = payload && payload.subAdmin;
+
+    let users = [];
+    try {
+        users = readAllUsers();
+        if (!Array.isArray(users)) {
+            console.error('readAllUsers() did not return an array, defaulting to empty array.');
+            users = [];
+        }
+    } catch (err) {
+        console.error('Error reading users in /suggestions route:', err);
+        users = [];
+    }
+
+    // Filter out old suggestions and limit to last 10
+    const now = new Date();
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    const recentSuggestions = suggestions.filter(s => {
+        const submittedAt = new Date(s.submittedAt);
+        return (now - submittedAt) <= oneDayMs;
+    }).slice(-10); // Last 10
+    res.render('layout', { title: 'Suggestions', user, isAdmin, isSubAdmin, isHeadAdmin, suggestions: recentSuggestions, users });
 });
 
 app.get('/violations-history', (req, res) => {

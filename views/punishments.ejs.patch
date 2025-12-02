@@ -1,0 +1,5 @@
+<ul style="list-style-type: none; padding: 0;">
+=======
+<h2>Punishments List</h2>
+<% if (punishments && punishments.length > 0) { %>
+<ul style="list-style-type: none; padding: 0;">

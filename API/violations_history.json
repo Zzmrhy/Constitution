@@ -300,5 +300,29 @@
     "archivedAt": 1764008690888,
     "periodStart": 1763402400000,
     "violations": []
+  },
+  {
+    "archivedAt": 1764694980722,
+    "periodStart": 1764008690888,
+    "violations": [
+      {
+        "date": "2025-11-24T18:36:04.210Z",
+        "brokenRules": [
+          "Ben played computer games (still is)"
+        ]
+      },
+      {
+        "date": "2025-11-24T18:39:59.050Z",
+        "brokenRules": [
+          "Ben cat talked people"
+        ]
+      },
+      {
+        "date": "2025-11-24T18:40:23.402Z",
+        "brokenRules": [
+          "Ben catfished"
+        ]
+      }
+    ]
   }
 ]

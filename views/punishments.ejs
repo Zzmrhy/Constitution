@@ -1,15 +1,13 @@
+<h2>Punishments List</h2>
 <% if (punishments && punishments.length > 0) { %>
-  <h2>Punishments List</h2>
-  <ul style="list-style-type: none; padding: 0;">
+<ul style="list-style-type: none; padding: 0;">
     <% punishments.forEach(function(punishment) { %>
-<li style="margin-bottom: 15px; border: 1px solid #ccc; padding: 10px; border-radius: 5px; position: relative;">
-        <strong>Punishment:</strong> <span class="punishment-text"><%= punishment.text || 'No punishment text set' %></span>
+      <li style="margin-bottom: 15px; border: 1px solid #ccc; padding: 10px; border-radius: 5px; position: relative;">
+        <strong>Punishment:</strong>
         <br />
         <small style="display: block; margin-top: 5px;">
           Min Violations: <%= punishment.min %>, Max Violations: <%= punishment.max === null ? 'No limit' : punishment.max %>
         </small>
-        <!-- Removed readonly input for better UX, show only punishment text -->
-        <!--<input type="text" name="text" value="<%= punishment.text || '' %>" placeholder="Punishment Text" required style="padding: 5px; margin-top: 5px; width: 100%;" readonly>-->
         <span class="punishment-text" style="padding: 5px; margin-top: 5px; display: inline-block; width: 100%; white-space: normal;"><%= punishment.text || 'No punishment text set' %></span>
         
         <% if (isHeadAdmin) { %>
@@ -24,144 +22,270 @@
 <% } else { %>
   <h2>No punishments available</h2>
   <p>There are currently no punishments to display.</p>
-
 <% } %>
 
-<!-- Edit Punishment Modal -->
-<div id="editModal" class="modal" style="display:none; position: fixed; z-index:1000; left:0; top:0; width:100%; height:100%; overflow:auto; background-color: rgba(0,0,0,0.6);">
-  <div class="modal-content" style="background:#fff; margin: 10% auto; padding: 20px; border-radius: 10px; width: 400px; position: relative;">
-    <span class="close" style="position: absolute; right: 15px; top: 10px; font-size: 28px; cursor:pointer;">&times;</span>
-    <h3>Edit Punishment</h3>
-    <p id="violationsCount"></p>
-    <textarea id="editPunishmentText" rows="4" style="width: 100%; padding: 5px; font-size: 16px;"></textarea>
-    <button id="saveEditBtn" style="margin-top: 15px;">Save</button>
+<!-- Add Punishment Suggestions UI -->
+
+<hr />
+<section id="punishment-suggestions-section">
+  <h2>Punishment Suggestions</h2>
+
+  <% if (!isAdmin) { %>
+  <div id="suggestion-form-container" style="margin-bottom: 20px;">
+    <h3>Make a Suggestion</h3>
+    <textarea id="suggestion-text" rows="3" placeholder="Enter your punishment suggestion here..." style="width: 100%; padding: 10px; font-size: 14px;"></textarea>
+    <button id="submit-suggestion-btn" style="margin-top: 10px;">Submit Suggestion</button>
+    <p id="suggestion-form-message" style="color: red; margin-top: 5px; display: none;"></p>
   </div>
-</div>
+  <% } else { %>
+  <p>Admins cannot submit punishment suggestions.</p>
+  <% } %>
+
+  <div id="suggestions-list-container">
+    <h3>Current Suggestions</h3>
+    <ul id="suggestions-list" style="list-style-type: none; padding-left: 0;">
+    </ul>
+  </div>
+</section>
 
 <script>
-  (function() {
-    const removeButtons = document.querySelectorAll('.remove-punishment-btn');
-    const editButtons = document.querySelectorAll('.edit-punishment-btn');
-    const modal = document.getElementById('editModal');
-    const modalClose = modal.querySelector('.close');
-    const editTextArea = document.getElementById('editPunishmentText');
-    const saveBtn = document.getElementById('saveEditBtn');
-    const violationsCountElem = document.getElementById('violationsCount');
+  document.addEventListener('DOMContentLoaded', function() {
+    // User and role info passed from server-rendered data
+    const user = <%= JSON.stringify(user || {}) %>;
+    const isAdmin = <%= JSON.stringify(isAdmin || false) %>;
+    const isSubAdmin = <%= JSON.stringify(isSubAdmin || false) %>;
+    const isHeadAdmin = <%= JSON.stringify(isHeadAdmin || false) %>;
 
-    let currentPunishmentId = null;
+    // Function to handle edit button click
+    function handleEditClick(btn) {
+      const li = btn.closest('li');
+      const punishmentTextSpan = li.querySelector('.punishment-text');
+      const originalText = punishmentTextSpan.textContent;
+      const id = btn.getAttribute('data-id');
 
-    // Since this is inline and punishments array is not defined here, we want to expose it
-    const punishments = <%- JSON.stringify(punishments || []) %>;
-    window.punishments = punishments; // expose globally for debugging
+      // Replace text with input
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.value = originalText;
+      input.style.width = '100%';
+      punishmentTextSpan.replaceWith(input);
 
-    // Helper to fetch violations count for a punishment by counting violations with brokenRules length in punishment min-max range
-    async function fetchViolationsCount(punishmentId) {
+      // Replace buttons with save/cancel
+      const buttonDiv = btn.parentElement;
+      buttonDiv.innerHTML = '<button class="save-edit-btn">Save</button> <button class="cancel-edit-btn">Cancel</button>';
+
+      // Save button
+      buttonDiv.querySelector('.save-edit-btn').addEventListener('click', async () => {
+        const newText = input.value.trim();
+        if (!newText) {
+          alert('Punishment text cannot be empty');
+          return;
+        }
+        try {
+          const res = await fetch(`/api/head-admin/punishments/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ text: newText })
+          });
+          if (res.ok) {
+            window.location.reload();
+          } else {
+            const err = await res.json();
+            alert('Error updating punishment: ' + (err.error || 'Unknown error'));
+          }
+        } catch (err) {
+          alert('Error updating punishment');
+        }
+      });
+
+      // Cancel button
+      buttonDiv.querySelector('.cancel-edit-btn').addEventListener('click', () => {
+        input.replaceWith(punishmentTextSpan);
+        buttonDiv.innerHTML = '<button class="edit-punishment-btn" data-id="' + id + '" style="margin-right: 10px;">Edit</button> <button class="remove-punishment-btn" data-id="' + id + '">Remove</button>';
+        // Re-attach event listeners
+        const newEditBtn = buttonDiv.querySelector('.edit-punishment-btn');
+        const newRemoveBtn = buttonDiv.querySelector('.remove-punishment-btn');
+        handleEditClick(newEditBtn);
+        newRemoveBtn.addEventListener('click', function() {
+          if (confirm('Are you sure you want to remove this punishment?')) {
+            fetch(`/api/head-admin/punishments/${id}`, {
+              method: 'DELETE',
+              credentials: 'include'
+            }).then(res => {
+              if (res.ok) {
+                window.location.reload();
+              } else {
+                res.json().then(err => alert('Error removing punishment: ' + (err.error || 'Unknown error')));
+              }
+            }).catch(err => alert('Error removing punishment'));
+          }
+        });
+      });
+    }
+
+    // Attach edit handlers to all edit buttons
+    document.querySelectorAll('.edit-punishment-btn').forEach(btn => {
+      handleEditClick(btn);
+    });
+
+    // Handle remove punishment buttons
+    document.querySelectorAll('.remove-punishment-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const id = this.getAttribute('data-id');
+        if (confirm('Are you sure you want to remove this punishment?')) {
+          fetch(`/api/head-admin/punishments/${id}`, {
+            method: 'DELETE',
+            credentials: 'include'
+          }).then(res => {
+            if (res.ok) {
+              window.location.reload();
+            } else {
+              res.json().then(err => alert('Error removing punishment: ' + (err.error || 'Unknown error')));
+            }
+          }).catch(err => alert('Error removing punishment'));
+        }
+      });
+    });
+
+    const suggestionTextElem = document.getElementById('suggestion-text');
+    const submitSuggestionBtn = document.getElementById('submit-suggestion-btn');
+    const suggestionFormMessage = document.getElementById('suggestion-form-message');
+    const suggestionsList = document.getElementById('suggestions-list');
+
+    async function loadSuggestions() {
       try {
-        const response = await fetch('/api/violations');
-        const data = await response.json();
-        if (!data || !data.violations) return 0;
-
-        const punishmentItem = punishments.find(p => p.id === punishmentId);
-        if (!punishmentItem) return 0;
-
-        const min = punishmentItem.min || 0;
-        const max = punishmentItem.max === null ? Infinity : punishmentItem.max;
-
-        const count = data.violations.filter(v => {
-          const brCount = v.brokenRules.length || 0;
-          return brCount >= min && brCount <= max;
-        }).length;
-        return count;
+        const res = await fetch('/api/punishment-suggestions');
+        if (!res.ok) throw new Error('Failed to load suggestions');
+        const data = await res.json();
+        renderSuggestions(data.suggestions || []);
       } catch (err) {
-        return 0;
+        suggestionsList.innerHTML = '<li>Error loading suggestions</li>';
       }
     }
 
-    // Remove punishment handler
-    removeButtons.forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const id = btn.getAttribute('data-id');
-        if (!confirm('Are you sure you want to remove this punishment?')) return;
+    function renderSuggestions(suggestions) {
+      suggestionsList.innerHTML = '';
+      if (suggestions.length === 0) {
+        suggestionsList.innerHTML = '<li>No suggestions available.</li>';
+        return;
+      }
+
+      suggestions.forEach(suggestion => {
+        const li = document.createElement('li');
+        li.style.border = '1px solid #ddd';
+        li.style.padding = '10px';
+        li.style.marginBottom = '10px';
+        li.style.borderRadius = '5px';
+
+        const textP = document.createElement('p');
+        textP.textContent = suggestion.text;
+        li.appendChild(textP);
+
+        const authorP = document.createElement('small');
+        authorP.textContent = `Suggested by: ${suggestion.submittedBy}`;
+        li.appendChild(authorP);
+
+        const votesDiv = document.createElement('div');
+        votesDiv.style.marginTop = '5px';
+        votesDiv.textContent = `Approve: ${suggestion.votes.approve.length} | Reject: ${suggestion.votes.reject.length}`;
+        li.appendChild(votesDiv);
+
+        if (isAdmin || isSubAdmin) {
+          const disableVote = isSubAdmin && suggestion.submittedBy === user.Email;
+
+          const voteApproveBtn = document.createElement('button');
+          voteApproveBtn.textContent = 'Approve';
+          voteApproveBtn.disabled = disableVote;
+          voteApproveBtn.style.marginRight = '5px';
+          voteApproveBtn.addEventListener('click', () => voteSuggestion(suggestion.id, 'approve'));
+
+          const voteRejectBtn = document.createElement('button');
+          voteRejectBtn.textContent = 'Reject';
+          voteRejectBtn.disabled = disableVote;
+          voteRejectBtn.addEventListener('click', () => voteSuggestion(suggestion.id, 'reject'));
+
+          const voteNotice = document.createElement('small');
+          if (disableVote) {
+            voteApproveBtn.title = 'You cannot vote on your own suggestion';
+            voteRejectBtn.title = 'You cannot vote on your own suggestion';
+            voteNotice.textContent = "You cannot vote on your own suggestion.";
+            voteNotice.style.color = 'red';
+            voteNotice.style.display = 'block';
+            voteNotice.style.marginTop = '5px';
+          }
+
+          li.appendChild(voteApproveBtn);
+          li.appendChild(voteRejectBtn);
+          li.appendChild(voteNotice);
+        }
+
+        suggestionsList.appendChild(li);
+      });
+    }
+
+    if (submitSuggestionBtn) {
+      submitSuggestionBtn.addEventListener('click', async () => {
+        const text = suggestionTextElem.value.trim();
+        if (!text) {
+          suggestionFormMessage.textContent = 'Suggestion cannot be empty.';
+          suggestionFormMessage.style.color = 'red';
+          suggestionFormMessage.style.display = 'block';
+          return;
+        }
+        // Disable the submit button while submitting
+        submitSuggestionBtn.disabled = true;
+        suggestionFormMessage.style.display = 'none';
 
         try {
-          const res = await fetch(`/api/head-admin/punishments/${id}`, {
-            method: 'DELETE',
-            headers: {
-              'Content-Type': 'application/json'
-            }
+          const res = await fetch('/api/punishment-suggestions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ suggestion: text })
           });
           if (res.ok) {
-            alert('Punishment removed');
-            location.reload();
+            suggestionTextElem.value = '';
+            suggestionFormMessage.style.color = 'green';
+            suggestionFormMessage.textContent = 'Suggestion submitted successfully.';
+            suggestionFormMessage.style.display = 'block';
+            loadSuggestions();
           } else {
-            alert('Failed to remove punishment');
+            const errData = await res.json();
+            suggestionFormMessage.style.color = 'red';
+            suggestionFormMessage.textContent = errData.error || 'Failed to submit suggestion.';
+            suggestionFormMessage.style.display = 'block';
           }
         } catch (err) {
-          alert('Error removing punishment');
+          suggestionFormMessage.style.color = 'red';
+          suggestionFormMessage.textContent = 'Error submitting suggestion.';
+          suggestionFormMessage.style.display = 'block';
         }
+        // Re-enable the submit button after submission
+        submitSuggestionBtn.disabled = false;
       });
-    });
+    }
 
-    // Edit punishment handler
-    editButtons.forEach(btn => {
-      btn.addEventListener('click', async () => {
-        currentPunishmentId = btn.getAttribute('data-id');
-        const punishment = punishments.find(p => p.id === currentPunishmentId);
-        if (!punishment) return;
-
-        editTextArea.value = punishment.text;
-
-        // Fetch and display violations count
-        const count = await fetchViolationsCount(currentPunishmentId);
-        violationsCountElem.textContent = `Number of violations for this punishment: ${count}`;
-
-        modal.style.display = 'block';
-      });
-    });
-
-    modalClose.addEventListener('click', () => {
-      modal.style.display = 'none';
-      currentPunishmentId = null;
-    });
-
-    window.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        modal.style.display = 'none';
-        currentPunishmentId = null;
-      }
-    });
-
-saveBtn.addEventListener('click', async () => {
-      if (!currentPunishmentId) return alert('No punishment selected');
-
-      const newText = editTextArea.value.trim();
-      if (!newText) return alert('Punishment text cannot be empty');
-
+    async function voteSuggestion(id, vote) {
+      // Voting buttons are not disabled since button references are unavailable; this can cause multiple clicks
       try {
-        // Send min and max also to preserve ranges if they are not edited here
-        const punishment = punishments.find(p => p.id === currentPunishmentId);
-        if (!punishment) return alert('Punishment not found');
-
-        const res = await fetch(`/api/head-admin/punishments/${currentPunishmentId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ text: newText, min: punishment.min, max: punishment.max })
+        const res = await fetch(`/api/punishment-suggestions/${id}/vote`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ vote })
         });
-
         if (res.ok) {
-          alert('Punishment updated');
-          modal.style.display = 'none';
-          currentPunishmentId = null;
-          location.reload();
+          loadSuggestions();
         } else {
-          const data = await res.json();
-          alert('Failed to update punishment: ' + (data.error || 'Unknown error'));
+          const errData = await res.json();
+          alert('Error voting: ' + (errData.error || 'Unknown error'));
         }
       } catch (err) {
-        alert('Error updating punishment');
+        alert('Error voting on suggestion.');
       }
-    });
-  })();
+    }
+
+    loadSuggestions();
+  });
 </script>
