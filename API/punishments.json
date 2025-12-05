@@ -19,12 +19,6 @@
       "punishment": "We Call Ben's Grandma To Have Her Throw A Shoe At Ben"
     },
     {
-      "id": "4",
-      "min": 15,
-      "max": 19,
-      "punishment": "Ball"
-    },
-    {
       "id": "5",
       "min": 20,
       "max": 24,
@@ -77,6 +71,24 @@
       "min": 100,
       "max": null,
       "punishment": "1941 Will Be Caused By Yours Truly"
+    },
+    {
+      "id": "1764959905398",
+      "min": 60,
+      "max": 64,
+      "punishment": "Ball"
+    },
+    {
+      "id": "1764959906432",
+      "min": 65,
+      "max": 69,
+      "punishment": "Shoe"
+    },
+    {
+      "id": "1764961572023",
+      "punishment": "Ben must eat a tree",
+      "min": 15,
+      "max": 19
     }
   ]
 }

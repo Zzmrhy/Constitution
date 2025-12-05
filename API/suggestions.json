@@ -1,24 +1,3 @@
 {
-  "suggestions": [
-    {
-      "id": "1764695137693",
-      "text": "Ben may not add or suggest adding any viruses or trojans or any other kinds of infections to the computer",
-      "submittedBy": "aiden.rathbun07@gmail.com",
-      "submittedAt": "2025-12-02T17:05:37.693Z",
-      "votes": {
-        "approve": [],
-        "reject": []
-      }
-    },
-    {
-      "id": "1764697139582",
-      "text": "Ben may not add or suggest adding any viruses or trojans or any other kinds of infections to the computer",
-      "submittedBy": "aiden.rathbun07@gmail.com",
-      "submittedAt": "2025-12-02T17:38:59.582Z",
-      "votes": {
-        "approve": [],
-        "reject": []
-      }
-    }
-  ]
+  "suggestions": []
 }

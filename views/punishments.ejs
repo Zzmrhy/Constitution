@@ -34,6 +34,12 @@
   <div id="suggestion-form-container" style="margin-bottom: 20px;">
     <h3>Make a Suggestion</h3>
     <textarea id="suggestion-text" rows="3" placeholder="Enter your punishment suggestion here..." style="width: 100%; padding: 10px; font-size: 14px;"></textarea>
+    <br><br>
+    <label for="suggestion-min">Min Violations (required):</label>
+    <input type="number" id="suggestion-min" min="0" style="width: 100%; padding: 10px; font-size: 14px;" required>
+    <br><br>
+    <label for="suggestion-max">Max Violations (required):</label>
+    <input type="number" id="suggestion-max" min="0" style="width: 100%; padding: 10px; font-size: 14px;" required>
     <button id="submit-suggestion-btn" style="margin-top: 10px;">Submit Suggestion</button>
     <p id="suggestion-form-message" style="color: red; margin-top: 5px; display: none;"></p>
   </div>
@@ -51,82 +57,60 @@
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     // User and role info passed from server-rendered data
-    const user = <%= JSON.stringify(user || {}) %>;
-    const isAdmin = <%= JSON.stringify(isAdmin || false) %>;
-    const isSubAdmin = <%= JSON.stringify(isSubAdmin || false) %>;
-    const isHeadAdmin = <%= JSON.stringify(isHeadAdmin || false) %>;
-
-    // Function to handle edit button click
-    function handleEditClick(btn) {
-      const li = btn.closest('li');
-      const punishmentTextSpan = li.querySelector('.punishment-text');
-      const originalText = punishmentTextSpan.textContent;
-      const id = btn.getAttribute('data-id');
-
-      // Replace text with input
-      const input = document.createElement('input');
-      input.type = 'text';
-      input.value = originalText;
-      input.style.width = '100%';
-      punishmentTextSpan.replaceWith(input);
-
-      // Replace buttons with save/cancel
-      const buttonDiv = btn.parentElement;
-      buttonDiv.innerHTML = '<button class="save-edit-btn">Save</button> <button class="cancel-edit-btn">Cancel</button>';
-
-      // Save button
-      buttonDiv.querySelector('.save-edit-btn').addEventListener('click', async () => {
-        const newText = input.value.trim();
-        if (!newText) {
-          alert('Punishment text cannot be empty');
-          return;
-        }
-        try {
-          const res = await fetch(`/api/head-admin/punishments/${id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ text: newText })
-          });
-          if (res.ok) {
-            window.location.reload();
-          } else {
-            const err = await res.json();
-            alert('Error updating punishment: ' + (err.error || 'Unknown error'));
-          }
-        } catch (err) {
-          alert('Error updating punishment');
-        }
-      });
-
-      // Cancel button
-      buttonDiv.querySelector('.cancel-edit-btn').addEventListener('click', () => {
-        input.replaceWith(punishmentTextSpan);
-        buttonDiv.innerHTML = '<button class="edit-punishment-btn" data-id="' + id + '" style="margin-right: 10px;">Edit</button> <button class="remove-punishment-btn" data-id="' + id + '">Remove</button>';
-        // Re-attach event listeners
-        const newEditBtn = buttonDiv.querySelector('.edit-punishment-btn');
-        const newRemoveBtn = buttonDiv.querySelector('.remove-punishment-btn');
-        handleEditClick(newEditBtn);
-        newRemoveBtn.addEventListener('click', function() {
-          if (confirm('Are you sure you want to remove this punishment?')) {
-            fetch(`/api/head-admin/punishments/${id}`, {
-              method: 'DELETE',
-              credentials: 'include'
-            }).then(res => {
-              if (res.ok) {
-                window.location.reload();
-              } else {
-                res.json().then(err => alert('Error removing punishment: ' + (err.error || 'Unknown error')));
-              }
-            }).catch(err => alert('Error removing punishment'));
-          }
-        });
-      });
-    }
+    const user = <%- JSON.stringify(user || {}) %>;
+    const isAdmin = <%- JSON.stringify(isAdmin || false) %>;
+    const isSubAdmin = <%- JSON.stringify(isSubAdmin || false) %>;
+    const isHeadAdmin = <%- JSON.stringify(isHeadAdmin || false) %>;
+    const punishments = <%- JSON.stringify(punishments || []) %>;
 
     // Attach edit handlers to all edit buttons
     document.querySelectorAll('.edit-punishment-btn').forEach(btn => {
-      handleEditClick(btn);
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-id');
+        const li = btn.closest('li');
+        const punishmentTextSpan = li.querySelector('.punishment-text');
+        const originalText = punishmentTextSpan.textContent;
+        // Get current min and max from the punishment data
+        const punishment = punishments.find(p => p.id === id);
+        const currentMin = punishment ? punishment.min : 0;
+        const currentMax = punishment ? punishment.max : null;
+
+        const newText = prompt('Edit punishment text:', originalText);
+        if (newText === null) return; // Cancelled
+
+        const newMinStr = prompt('Edit min violations:', currentMin);
+        if (newMinStr === null) return; // Cancelled
+        const newMin = parseInt(newMinStr);
+        if (isNaN(newMin) || newMin < 0) {
+          alert('Min must be a valid number >= 0');
+          return;
+        }
+
+        const newMaxStr = prompt('Edit max violations (leave empty for no limit):', currentMax === null ? '' : currentMax);
+        if (newMaxStr === null) return; // Cancelled
+        const newMax = newMaxStr.trim() === '' ? null : parseInt(newMaxStr);
+        if (newMax !== null && (isNaN(newMax) || newMax < 0)) {
+          alert('Max must be a valid number >= 0 or empty');
+          return;
+        }
+        if (newMax !== null && newMax < newMin) {
+          alert('Max must be >= min');
+          return;
+        }
+
+        fetch(`/api/head-admin/punishments/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ text: newText.trim(), min: newMin, max: newMax })
+        }).then(res => {
+          if (res.ok) {
+            window.location.reload();
+          } else {
+            res.json().then(err => alert('Error updating punishment: ' + (err.error || 'Unknown error')));
+          }
+        }).catch(err => alert('Error updating punishment'));
+      });
     });
 
     // Handle remove punishment buttons
@@ -149,6 +133,8 @@
     });
 
     const suggestionTextElem = document.getElementById('suggestion-text');
+    const suggestionMinElem = document.getElementById('suggestion-min');
+    const suggestionMaxElem = document.getElementById('suggestion-max');
     const submitSuggestionBtn = document.getElementById('submit-suggestion-btn');
     const suggestionFormMessage = document.getElementById('suggestion-form-message');
     const suggestionsList = document.getElementById('suggestions-list');
@@ -181,6 +167,10 @@
         const textP = document.createElement('p');
         textP.textContent = suggestion.text;
         li.appendChild(textP);
+
+        const rangeP = document.createElement('small');
+        rangeP.textContent = `Min Violations: ${suggestion.min}, Max Violations: ${suggestion.max === null ? 'No limit' : suggestion.max}`;
+        li.appendChild(rangeP);
 
         const authorP = document.createElement('small');
         authorP.textContent = `Suggested by: ${suggestion.submittedBy}`;
@@ -227,8 +217,28 @@
     if (submitSuggestionBtn) {
       submitSuggestionBtn.addEventListener('click', async () => {
         const text = suggestionTextElem.value.trim();
+        const min = parseInt(suggestionMinElem.value);
+        const max = parseInt(suggestionMaxElem.value);
         if (!text) {
           suggestionFormMessage.textContent = 'Suggestion cannot be empty.';
+          suggestionFormMessage.style.color = 'red';
+          suggestionFormMessage.style.display = 'block';
+          return;
+        }
+        if (isNaN(min) || min < 0) {
+          suggestionFormMessage.textContent = 'Min violations must be a valid number >= 0.';
+          suggestionFormMessage.style.color = 'red';
+          suggestionFormMessage.style.display = 'block';
+          return;
+        }
+        if (isNaN(max) || max < 0) {
+          suggestionFormMessage.textContent = 'Max violations must be a valid number >= 0.';
+          suggestionFormMessage.style.color = 'red';
+          suggestionFormMessage.style.display = 'block';
+          return;
+        }
+        if (max < min) {
+          suggestionFormMessage.textContent = 'Max violations must be >= min violations.';
           suggestionFormMessage.style.color = 'red';
           suggestionFormMessage.style.display = 'block';
           return;
@@ -242,10 +252,12 @@
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ suggestion: text })
+            body: JSON.stringify({ suggestion: text, min: min, max: max })
           });
           if (res.ok) {
             suggestionTextElem.value = '';
+            suggestionMinElem.value = '';
+            suggestionMaxElem.value = '';
             suggestionFormMessage.style.color = 'green';
             suggestionFormMessage.textContent = 'Suggestion submitted successfully.';
             suggestionFormMessage.style.display = 'block';

@@ -12,10 +12,22 @@
         <div style="background-color: white; border: 1px solid #dee2e6; padding: 15px; margin-bottom: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             <h3 style="color: #495057;">Submit a Suggestion</h3>
             <form id="suggestion-form">
+                <div style="margin-bottom: 10px;">
+                    <label style="margin-right: 10px;"><input type="radio" name="suggestion-type" value="rule" checked> Rule</label>
+                    <label><input type="radio" name="suggestion-type" value="punishment"> Punishment</label>
+                </div>
                 <textarea id="suggestion-text" placeholder="Enter your suggestion..." rows="4" style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px; resize: vertical;"></textarea>
                 <button type="button" id='submit-suggestion-btn' style="background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin-top: 10px;">Submit Suggestion</button>
             </form>
             <div id="suggestion-error" style="color: red; display: none; margin-top: 10px;"></div>
+        </div>
+    <% } %>
+
+    <!-- Display suggestions (visible to admins and sub-admins) -->
+    <% if (isAdmin || isSubAdmin) { %>
+        <div id="suggestions-list" style="background-color: white; border: 1px solid #dee2e6; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <h3 style="color: #495057;">Pending Suggestions</h3>
+            <div id="suggestions-container"></div>
         </div>
     <% } %>
 </div>
@@ -28,6 +40,7 @@
             const textElem = document.getElementById('suggestion-text');
             const errorElem = document.getElementById('suggestion-error');
             const text = textElem.value.trim();
+            const type = document.querySelector('input[name="suggestion-type"]:checked').value;
 
             if (!text) {
                 errorElem.textContent = 'Suggestion text is required';
@@ -35,7 +48,8 @@
                 return;
             }
             try {
-                const response = await fetch('/api/suggestions', {
+                const endpoint = type === 'rule' ? '/api/suggestions' : '/api/punishment-suggestions';
+                const response = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     credentials: 'include',
@@ -54,4 +68,64 @@
             }
         });
     }
+
+    // Load and display suggestions
+    async function loadSuggestions() {
+        const container = document.getElementById('suggestions-container');
+        if (!container) return;
+
+        try {
+            const [ruleRes, punishmentRes] = await Promise.all([
+                fetch('/api/suggestions', { credentials: 'include' }),
+                fetch('/api/punishment-suggestions', { credentials: 'include' })
+            ]);
+
+            const ruleData = ruleRes.ok ? await ruleRes.json() : { suggestions: [] };
+            const punishmentData = punishmentRes.ok ? await punishmentRes.json() : { suggestions: [] };
+
+            const allSuggestions = [
+                ...ruleData.suggestions.map(s => ({ ...s, type: 'rule' })),
+                ...punishmentData.suggestions.map(s => ({ ...s, type: 'punishment' }))
+            ];
+
+            if (allSuggestions.length === 0) {
+                container.innerHTML = '<p>No pending suggestions.</p>';
+                return;
+            }
+
+            container.innerHTML = allSuggestions.map(suggestion => `
+                <div style="border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 4px; background-color: #f9f9f9;">
+                    <p style="color: #333;"><strong>${suggestion.type === 'rule' ? 'Rule' : 'Punishment'} Suggestion:</strong> ${suggestion.text}</p>
+                    <p style="color: #666;"><small>Submitted by: ${suggestion.submittedBy} on ${new Date(suggestion.submittedAt).toLocaleString()}</small></p>
+                    <p style="color: #666;"><small>Votes: Approve: ${suggestion.votes.approve.length}, Reject: ${suggestion.votes.reject.length}</small></p>
+                    <button onclick="vote('${suggestion.id}', 'approve', '${suggestion.type}')" style="background-color: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-right: 5px;">Approve</button>
+                    <button onclick="vote('${suggestion.id}', 'reject', '${suggestion.type}')" style="background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Reject</button>
+                </div>
+            `).join('');
+        } catch (err) {
+            container.innerHTML = '<p>Error loading suggestions.</p>';
+        }
+    }
+
+    async function vote(id, voteType, suggestionType) {
+        try {
+            const endpoint = suggestionType === 'rule' ? `/api/suggestions/${id}/vote` : `/api/punishment-suggestions/${id}/vote`;
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ vote: voteType })
+            });
+            if (response.ok) {
+                loadSuggestions();
+            } else {
+                alert('Failed to vote');
+            }
+        } catch (err) {
+            alert('Network error');
+        }
+    }
+
+    // Load suggestions on page load
+    loadSuggestions();
 </script>

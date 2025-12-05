@@ -109,7 +109,7 @@ function getCurrentPunishment(totalBroken) {
   // Find the punishment with the highest min <= totalBroken
   for (let i = sortedPunishments.length - 1; i >= 0; i--) {
     const p = sortedPunishments[i];
-    if (totalBroken >= p.min && (p.max === null || totalBroken <= p.max)) {
+    if (totalBroken >= p.min) {
       return p;
     }
   }
@@ -292,29 +292,7 @@ const PORT = process.env.PORT || 5000;
 app.get('/', (req, res) => {
     const payload = verifyAccessTokenFromReq(req);
     const user = payload;
-    res.render('layout', { title: 'Home', user });
-});
-
-app.get('/rules', (req, res) => {
-    const payload = verifyAccessTokenFromReq(req);
-    if (!payload) return res.redirect('/');
-
-    // Reload rules from file to get latest data
-    let currentRules = [];
-    try {
-        const rulesData = JSON.parse(fs.readFileSync(path.join(__dirname, "rules.json"), 'utf8'));
-        currentRules = rulesData.rules || [];
-    } catch (err) {
-        console.error("Failed to load rules.json", err);
-    }
-
-    const user = payload;
-    const isAdmin = payload && payload.admin === true;
-    const isHeadAdmin = payload && payload.headAdmin === true;
-    const totalBroken = violations.reduce((sum, v) => sum + v.brokenRules.length, 0);
-    const currentPunishment = getCurrentPunishment(totalBroken);
-
-    res.render('layout', { title: 'Rules', rules: currentRules, isAdmin, isHeadAdmin, user, totalBroken, currentPunishment });
+res.render('layout', { title: 'Home', user });
 });
 
 app.get('/violations', (req, res) => {
@@ -358,9 +336,12 @@ app.get('/punishments', (req, res) => {
     const mappedPunishments = currentPunishments.map((p, idx) => ({
         id: p.id || idx.toString(),
         text: p.punishment || '',
-        min: p.min,
-        max: p.max
+        min: p.min !== undefined ? p.min : 0,
+        max: p.max !== undefined ? p.max : null
     }));
+
+    // Sort punishments by min value ascending
+    mappedPunishments.sort((a, b) => a.min - b.min);
 
     const user = payload;
     const isAdmin = payload && payload.admin === true;
@@ -388,42 +369,11 @@ app.get('/rules', (req, res) => {
     const user = payload;
     const isAdmin = payload && payload.admin === true;
     const isHeadAdmin = payload && payload.headAdmin === true;
-    const totalBroken = violations.reduce((sum, v) => sum + v.brokenRules.length, 0);
-    const currentPunishment = getCurrentPunishment(totalBroken);
-
-    res.render('layout', { title: 'Rules', rules: currentRules, isAdmin, isHeadAdmin, user, totalBroken, currentPunishment });
-});
-
-app.get('/rules', (req, res) => {
-    const payload = verifyAccessTokenFromReq(req);
-    if (!payload) return res.redirect('/');
-
-    // Reload rules from file to get latest data
-    let currentRules = [];
-    try {
-        const rulesData = JSON.parse(fs.readFileSync(path.join(__dirname, "rules.json"), 'utf8'));
-        currentRules = rulesData.rules || [];
-    } catch (err) {
-        console.error("Failed to load rules.json", err);
-    }
-
-    const user = payload;
-    const isAdmin = payload && payload.admin === true;
-    const isHeadAdmin = payload && payload.headAdmin === true;
     const isSubAdmin = payload && payload.subAdmin;
     const totalBroken = violations.reduce((sum, v) => sum + v.brokenRules.length, 0);
     const currentPunishment = getCurrentPunishment(totalBroken);
 
-    res.render('layout', { title: 'Rules', rules: currentRules, isAdmin, isHeadAdmin, isSubAdmin, user, totalBroken, currentPunishment });
-});
-
-app.get('/violations-history', (req, res) => {
-    const payload = verifyAccessTokenFromReq(req);
-    if (!payload) return res.redirect('/');
-
-    const user = payload;
-    const history = readViolationsHistory();
-    res.render('layout', { title: 'Violations History', history, user });
+res.render('layout', { title: 'Rules', rules: currentRules, isAdmin, isHeadAdmin, isSubAdmin, user, totalBroken, currentPunishment });
 });
 
 app.get('/violations-history', (req, res) => {
@@ -433,31 +383,7 @@ app.get('/violations-history', (req, res) => {
     const user = payload;
     const isSubAdmin = payload && payload.subAdmin;
     const history = readViolationsHistory();
-    res.render('layout', { title: 'Violations History', history, user, isSubAdmin });
-});
-
-app.get('/head-admin-approvals', (req, res) => {
-    const payload = verifyAccessTokenFromReq(req);
-    if (!payload || !payload.headAdmin) return res.redirect('/');
-
-    // pending suggestions are those waiting for head admin approval
-    // Filter suggestions approved by admin/subadmin but not yet acted by head admin
-    // Let's assume pendingApprovals array stores such suggestions
-    const pendingSuggestions = pendingApprovals || []; // get from memory, or read file if needed
-
-    // rejectedSuggestions accessible here for display (no veto functionality)
-    const rejected = rejectedSuggestions || [];
-
-    const user = payload;
-
-    res.render('layout', {
-        title: 'Head Admin Approvals',
-        user,
-        pendingSuggestions,
-        rejectedSuggestions: rejected,
-        isAdmin: payload.admin === true,
-        isHeadAdmin: payload.headAdmin === true
-    });
+res.render('layout', { title: 'Violations History', history, user, isSubAdmin });
 });
 
 app.get('/head-admin-approvals', (req, res) => {
@@ -521,77 +447,13 @@ app.get('/suggestions', (req, res) => {
     res.render('layout', { title: 'Suggestions', user, isAdmin, isSubAdmin, isHeadAdmin, suggestions: recentSuggestions, users });
 });
 
-app.get('/violations-history', (req, res) => {
-    const payload = verifyAccessTokenFromReq(req);
-    if (!payload) return res.redirect('/');
-    const user = payload;
-    const history = readViolationsHistory();
-    res.render('layout', { title: 'Violations History', history, user });
-});
+
 
 app.get('/do', (req, res) => {
     const payload = verifyAccessTokenFromReq(req);
     if (!payload) return res.redirect('/');
     const user = payload;
-    res.render('layout', { title: 'What We Do', user });
-});
-
-app.get('/suggestions', (req, res) => {
-    const payload = verifyAccessTokenFromReq(req);
-    if (!payload) return res.redirect('/');
-    const user = payload;
-    const isAdmin = payload && payload.admin === true;
-    const isHeadAdmin = payload && payload.headAdmin === true;
-    if (isHeadAdmin) {
-        // Hide Suggestions page from headAdmins - redirect or 403
-        return res.status(403).send('Access denied');
-    }
-    const isSubAdmin = payload && payload.subAdmin;
-
-    let users = [];
-    try {
-        users = readAllUsers();
-        if (!Array.isArray(users)) {
-            console.error('readAllUsers() did not return an array, defaulting to empty array.');
-            users = [];
-        }
-    } catch (err) {
-        console.error('Error reading users in /suggestions route:', err);
-        users = [];
-    }
-
-    // Filter out old suggestions and limit to last 10
-    const now = new Date();
-    const oneDayMs = 24 * 60 * 60 * 1000;
-    const recentSuggestions = suggestions.filter(s => {
-        const submittedAt = new Date(s.submittedAt);
-        return (now - submittedAt) <= oneDayMs;
-    }).slice(-10); // Last 10
-    res.render('layout', { title: 'Suggestions', user, isAdmin, isSubAdmin, isHeadAdmin, suggestions: recentSuggestions, users });
-});
-
-app.get('/head-admin-approvals', (req, res) => {
-    const payload = verifyAccessTokenFromReq(req);
-    if (!payload || !payload.headAdmin) return res.redirect('/');
-
-    // pending suggestions are those waiting for head admin approval
-    // Filter suggestions approved by admin/subadmin but not yet acted by head admin
-    // Let's assume pendingApprovals array stores such suggestions
-    const pendingSuggestions = pendingApprovals || []; // get from memory, or read file if needed
-
-    // rejectedSuggestions accessible here for display (no veto functionality)
-    const rejected = rejectedSuggestions || [];
-
-    const user = payload;
-
-    res.render('layout', {
-        title: 'Head Admin Approvals',
-        user,
-        pendingSuggestions,
-        rejectedSuggestions: rejected,
-        isAdmin: payload.admin === true,
-        isHeadAdmin: payload.headAdmin === true
-    });
+res.render('layout', { title: 'What We Do', user });
 });
 
 app.post('/api/head-admin-approvals/:id', (req, res) => {
@@ -619,17 +481,17 @@ app.post('/api/head-admin-approvals/:id', (req, res) => {
             fs.writeFileSync('./rules.json', JSON.stringify({ rules: rules }, null, 2));
         } else if (suggestion.type === 'punishment') {
             // Add punishment
-            punishments.push({ id: Date.now().toString(), text: suggestion.text, min: 0, max: null }); // example fields
+            punishments.push({ id: Date.now().toString(), punishment: suggestion.text, min: suggestion.min, max: suggestion.max });
             fs.writeFileSync('./punishments.json', JSON.stringify({ punishments: punishments }, null, 2));
         }
         // Remove from pending approvals
         pendingApprovals.splice(index, 1);
         savePendingApprovals();
-    } else if (action === 'reject') {
+    } else {
         // Move suggestion to rejectedSuggestions (without veto option)
         rejectedSuggestions.push({ ...suggestion, rejectedAt: new Date().toISOString() });
         pendingApprovals.splice(index, 1);
-        savePendingSuggestions = () => fs.writeFileSync('./pending_approvals.json', JSON.stringify({ suggestions: pendingApprovals }, null, 2));
+        savePendingApprovals();
         saveRejectedSuggestions();
     }
 
@@ -739,7 +601,7 @@ app.get('/api/punishment-suggestions', (req, res) => {
 });
 
 app.post('/api/punishment-suggestions', (req, res) => {
-    const { suggestion } = req.body;
+    const { suggestion, min, max } = req.body;
     const payload = verifyAccessTokenFromReq(req);
     if (!payload) return res.status(401).json({ error: 'Unauthorized' });
 
@@ -749,10 +611,21 @@ app.post('/api/punishment-suggestions', (req, res) => {
     if (!suggestion || typeof suggestion !== 'string' || suggestion.trim().length === 0) {
         return res.status(400).json({ error: 'Suggestion text is required' });
     }
+    if (typeof min !== 'number' || min < 0) {
+        return res.status(400).json({ error: 'Min must be a number >= 0' });
+    }
+    if (typeof max !== 'number' || max < 0) {
+        return res.status(400).json({ error: 'Max must be a number >= 0' });
+    }
+    if (max < min) {
+        return res.status(400).json({ error: 'Max must be >= min' });
+    }
 
     const newSuggestion = {
         id: Date.now().toString(),
         text: suggestion.trim(),
+        min: min,
+        max: max,
         submittedBy: payload.Email,
         submittedAt: new Date().toISOString(),
         votes: {
@@ -810,6 +683,8 @@ app.post('/api/punishment-suggestions/:id/vote', (req, res) => {
         pendingApprovals.push({
             id: suggestion.id,
             text: suggestion.text,
+            min: suggestion.min,
+            max: suggestion.max,
             submittedBy: suggestion.submittedBy,
             submittedAt: suggestion.submittedAt,
             votes: suggestion.votes,
@@ -1385,7 +1260,7 @@ app.put('/api/head-admin/punishments/:id', (req, res) => {
     if (min !== undefined) punishments[index].min = min;
     if (max !== undefined) punishments[index].max = max;
 
-    fs.writeFileSync('./punishments.json', JSON.stringify({ punishments: punishments }, null, 2));
+    fs.writeFileSync(path.join(__dirname, 'punishments.json'), JSON.stringify({ punishments: punishments }, null, 2));
     res.json({ success: true, punishment: punishments[index] });
 });
 
@@ -1399,7 +1274,7 @@ app.delete('/api/head-admin/punishments/:id', (req, res) => {
     if (index === -1) return res.status(404).json({ error: 'Punishment not found' });
 
     punishments.splice(index, 1);
-    fs.writeFileSync('./punishments.json', JSON.stringify({ punishments: punishments }, null, 2));
+    fs.writeFileSync(path.join(__dirname, 'punishments.json'), JSON.stringify({ punishments: punishments }, null, 2));
     res.json({ success: true, message: 'Punishment removed' });
 });
 

@@ -1,3 +1,20 @@
 {
-  "suggestions": []
+  "suggestions": [
+    {
+      "id": "1764958114727",
+      "text": "Ben may not ben",
+      "submittedBy": "aiden.rathbun07@gmail.com",
+      "submittedAt": "2025-12-05T18:08:34.727Z",
+      "votes": {
+        "approve": [],
+        "reject": [
+          "aidenrathun@gmail.com",
+          "prestonis2008@gmail.com",
+          "CMP_BrMcNeely@students.ects.org"
+        ]
+      },
+      "rejectedAt": "2025-12-05T18:38:07.653Z",
+      "type": "rule"
+    }
+  ]
 }
