@@ -1,5 +1,9 @@
 <div style="max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f8f9fa; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
     <h1 id="header3" style="text-align: center; color: #dc3545; margin-bottom: 30px;">Violations History</h1>
+    <div style="margin-bottom: 40px;">
+        <h2 style="text-align: center; color: #495057;">Violations Trendline</h2>
+        <canvas id="violationsChart" width="400" height="200"></canvas>
+    </div>
     <% if (history && history.length > 0) { %>
         <% history.forEach((entry, index) => { %>
             <div style="margin-bottom: 20px; border: 1px solid #dee2e6; padding: 15px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
@@ -39,5 +43,76 @@
     function toggleWeek(week) {
         const element = document.getElementById('week-' + week);
         element.style.display = element.style.display === 'none' ? 'block' : 'none';
+    }
+
+    // Process violations history data for trendline (only previous week's data)
+    const historyData = <%- JSON.stringify(history) %>;
+    if (historyData && historyData.length > 0) {
+        const latestEntry = historyData[historyData.length - 1]; // Get the most recent week's data
+        const countMap = {};
+        const allDates = new Set();
+
+        // Process only the latest entry's violations
+        latestEntry.violations.forEach(violation => {
+            violation.brokenRules.forEach(rule => {
+                const date = violation.date;
+                if (!countMap[rule]) countMap[rule] = {};
+                if (!countMap[rule][date]) countMap[rule][date] = 0;
+                countMap[rule][date]++;
+                allDates.add(date);
+            });
+        });
+
+        // Sort dates
+        const sortedDates = Array.from(allDates).sort();
+
+        // Prepare datasets for Chart.js
+        const datasets = Object.keys(countMap).map(rule => {
+            const data = sortedDates.map(date => countMap[rule][date] || 0);
+            return {
+                label: rule,
+                data: data,
+                borderColor: getRandomColor(),
+                fill: false
+            };
+        });
+
+        // Function to generate random color
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        // Create the chart
+        const ctx = document.getElementById('violationsChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: sortedDates,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Count'
+                        },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
     }
 </script>

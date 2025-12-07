@@ -1076,16 +1076,20 @@ app.delete('/violations/:index', async (req, res) => {
 
 // API routes for violations
 app.post('/api/violations', async (req, res) => {
-    const { violation } = req.body;
+    const { text, rules } = req.body;
     const payload = verifyAccessTokenFromReq(req);
     if (!payload || (!payload.admin && !payload.subAdmin)) return res.status(401).json({ error: 'Unauthorized: Admins or sub-admins only' });
 
-    if (!violation || typeof violation !== 'string' || violation.trim().length === 0) {
-        return res.status(400).json({ error: 'Violation text is required' });
+    if (!text || typeof text !== 'string' || text.trim().length === 0) {
+        return res.status(400).json({ error: 'Violation description is required' });
     }
 
-    const brokenRules = violation.split(',').map(s => s.trim()).filter(s => s);
-    const newViolation = { date: new Date().toISOString(), brokenRules };
+    if (!rules || typeof rules !== 'string' || rules.trim().length === 0) {
+        return res.status(400).json({ error: 'At least one rule must be selected' });
+    }
+
+    const brokenRules = rules.split(',').map(s => s.trim()).filter(s => s);
+    const newViolation = { date: new Date().toISOString(), text: text.trim(), brokenRules };
     violations.push(newViolation);
     fs.writeFileSync('./violations.json', JSON.stringify({violations: violations}, null, 2));
     res.status(201).json({ success: true });

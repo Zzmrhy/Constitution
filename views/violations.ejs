@@ -6,7 +6,13 @@
         <div style="background-color: white; border: 1px solid #dee2e6; padding: 25px; margin-bottom: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             <h3 style="color: #495057; margin-bottom: 20px;">Add a Violation</h3>
             <form id="violation-form">
-                <textarea id="violation-text" placeholder="Enter violation details..." rows="4" style="width: 100%; padding: 15px; border: 1px solid #ced4da; border-radius: 4px; resize: vertical; margin-bottom: 15px;"></textarea>
+                <textarea id="violation-text" placeholder="Describe the violation..." rows="4" style="width: 100%; padding: 15px; border: 1px solid #ced4da; border-radius: 4px; resize: vertical; margin-bottom: 15px;"></textarea>
+                <label for="violation-rule" style="display: block; margin-bottom: 10px; color: #495057;">Select Broken Rule(s):</label>
+                <select id="violation-rule" multiple style="width: 100%; padding: 15px; border: 1px solid #ced4da; border-radius: 4px; margin-bottom: 15px; height: 120px;">
+                    <% rules.forEach(rule => { %>
+                        <option value="<%= rule %>"><%= rule %></option>
+                    <% }); %>
+                </select>
                 <button type="submit" id='btn' style="background-color: #007bff; color: white; border: none; padding: 12px 25px; border-radius: 4px; cursor: pointer;">Add Violation</button>
             </form>
             <div id="violation-error" style="color: red; display: none; margin-top: 15px;"></div>
@@ -29,7 +35,8 @@
     <% if (violations && violations.length > 0) { %>
         <% violations.forEach((violation, index) => { %>
             <div style="background-color: white; border: 1px solid #dee2e6; padding: 25px; margin-bottom: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                <h3 style="color: #495057; margin-bottom: 15px;"><%= violation.brokenRules.join(', ') %></h3>
+                <h3 style="color: #495057; margin-bottom: 15px;"><%= violation.text %></h3>
+                <p style="color: #6c757d; margin-bottom: 10px;">Classification: <%= violation.brokenRules.join(', ') %></p>
                 <p style="color: #6c757d; margin-bottom: 15px;">Date: <%= new Date(violation.date).toLocaleString() %></p>
                 <!-- Delete button for admins and sub-admins -->
                 <% if (isAdmin || isSubAdmin || isHeadAdmin) { %>
@@ -50,16 +57,24 @@
         document.getElementById('violation-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const text = document.getElementById('violation-text').value.trim();
+            const selectElement = document.getElementById('violation-rule');
+            const selectedOptions = Array.from(selectElement.selectedOptions).map(option => option.value);
             if (!text) {
-                document.getElementById('violation-error').textContent = 'Violation text is required';
+                document.getElementById('violation-error').textContent = 'Violation description is required';
                 document.getElementById('violation-error').style.display = 'block';
                 return;
             }
+            if (selectedOptions.length === 0) {
+                document.getElementById('violation-error').textContent = 'Please select at least one rule';
+                document.getElementById('violation-error').style.display = 'block';
+                return;
+            }
+            const rulesString = selectedOptions.join(',');
             try {
                 const response = await fetch('/api/violations', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ violation: text })
+                    body: JSON.stringify({ text: text, rules: rulesString })
                 });
                 if (response.ok) {
                     window.location.reload();
