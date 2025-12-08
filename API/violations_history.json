@@ -324,5 +324,109 @@
         ]
       }
     ]
+  },
+  {
+    "archivedAt": 1765216800058,
+    "periodStart": 1764694980722,
+    "violations": [
+      {
+        "date": "2025-12-07T00:23:40.077Z",
+        "text": "Ben went off task, again by playing games outside allowed time",
+        "brokenRules": [
+          "Ben shall not become unprofessional"
+        ]
+      },
+      {
+        "date": "2025-12-08T17:14:28.541Z",
+        "text": "Ben spoke some language",
+        "brokenRules": [
+          "Ben may not speak any foreign languages (including latin and any other languages)"
+        ]
+      },
+      {
+        "date": "2025-12-08T17:15:55.240Z",
+        "text": "Ben became off task once more",
+        "brokenRules": [
+          "Ben shall not become unprofessional"
+        ]
+      },
+      {
+        "date": "2025-12-08T17:16:23.919Z",
+        "text": "Ben sang",
+        "brokenRules": [
+          "No singing"
+        ]
+      },
+      {
+        "date": "2025-12-08T17:16:46.607Z",
+        "text": "Ben is yet again off task",
+        "brokenRules": [
+          "Ben shall not become unprofessional"
+        ]
+      },
+      {
+        "date": "2025-12-08T17:17:11.076Z",
+        "text": "Ben just won't stop getting off task",
+        "brokenRules": [
+          "Ben shall not become unprofessional"
+        ]
+      },
+      {
+        "date": "2025-12-08T17:17:32.847Z",
+        "text": "Ben is still off task",
+        "brokenRules": [
+          "Ben shall not become unprofessional"
+        ]
+      },
+      {
+        "date": "2025-12-08T17:18:12.144Z",
+        "text": "Ben became off task, again",
+        "brokenRules": [
+          "Ben shall not become unprofessional"
+        ]
+      },
+      {
+        "date": "2025-12-08T17:18:46.405Z",
+        "text": "Ben became off task",
+        "brokenRules": [
+          "Ben shall not become unprofessional"
+        ]
+      },
+      {
+        "date": "2025-12-08T17:19:17.366Z",
+        "text": "Ben is speaking, again",
+        "brokenRules": [
+          "Ben may not ben"
+        ]
+      },
+      {
+        "date": "2025-12-08T17:19:27.141Z",
+        "text": "Ben spoke",
+        "brokenRules": [
+          "Ben may not ben"
+        ]
+      },
+      {
+        "date": "2025-12-08T17:19:47.576Z",
+        "text": "Ben spoke spanish, again",
+        "brokenRules": [
+          "Ben may not speak any foreign languages (including latin and any other languages)"
+        ]
+      },
+      {
+        "date": "2025-12-08T17:19:58.792Z",
+        "text": "Ben spoke spanish",
+        "brokenRules": [
+          "Ben may not speak any foreign languages (including latin and any other languages)"
+        ]
+      },
+      {
+        "date": "2025-12-08T17:20:25.822Z",
+        "text": "Ben has said fish",
+        "brokenRules": [
+          "ben may not say 'fish'"
+        ]
+      }
+    ]
   }
 ]

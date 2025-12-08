@@ -1,5 +1,5 @@
 body {
-  background: linear-gradient(45deg, #00ffff, #ffffff, #ffd700);
+  background: linear-gradient(45deg, #00ffff, #f0f0f0, #ffd700);
 }
 
 .container {
@@ -92,7 +92,7 @@ img {
   }
 
   #header2 {
-    font-size: 4.5rem;
+    font-size: 3.5rem;
     color: darkcyan;
   }
 
@@ -102,7 +102,7 @@ img {
   }
 
   #list {
-    font-size: 3.5rem;
+    font-size: 1.5rem;
     list-style-type: circle;
     color: darkcyan;
   }
@@ -137,5 +137,11 @@ img {
 
   #header {
     background-image: linear-gradient(45deg, #8b0000, #2c2c2c, #00008b);
+  }
+
+  #list {
+    font-size: 1.5rem;
+    list-style-type: circle;
+    color: darkcyan;
   }
 }

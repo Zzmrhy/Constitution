@@ -14,3 +14,26 @@
     border-radius: 5px;
     border: 1px solid #dee2e6;
 }
+
+.punishment-item {
+    margin-bottom: 15px;
+    border: 1px solid #888;
+    padding: 10px;
+    border-radius: 5px;
+    position: relative;
+}
+
+@media (prefers-color-scheme: light) {
+    .punishment-item {
+        background-color: #f9f9f9;
+        color: #333;
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    .punishment-item {
+        background-color: #333;
+        color: #f9f9f9;
+        border-color: #666;
+    }
+}

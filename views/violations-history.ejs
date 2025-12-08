@@ -1,118 +1,77 @@
 <div style="max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f8f9fa; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
-    <h1 id="header3" style="text-align: center; color: #dc3545; margin-bottom: 30px;">Violations History</h1>
-    <div style="margin-bottom: 40px;">
-        <h2 style="text-align: center; color: #495057;">Violations Trendline</h2>
-        <canvas id="violationsChart" width="400" height="200"></canvas>
-    </div>
-    <% if (history && history.length > 0) { %>
-        <% history.forEach((entry, index) => { %>
-            <div style="margin-bottom: 20px; border: 1px solid #dee2e6; padding: 15px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                <h3 style="color: #495057;">Archived on <%= new Date(entry.archivedAt).toLocaleString() %></h3>
-                <% if (entry.periodStart) { %>
-                    <p style="color: #6c757d;">Period: <%= new Date(entry.periodStart).toLocaleDateString() %> to <%= new Date(entry.archivedAt).toLocaleDateString() %></p>
-                <% } %>
-                <% if (entry.violations && entry.violations.length > 0) { %>
-                    <ul id="list" style="list-style: none; padding: 0;">
-                        <% entry.violations.forEach((violation) => { %>
-                            <li style="background-color: #f8d7da; margin-bottom: 10px; padding: 10px; border-radius: 5px; border-left: 4px solid #dc3545;">
-                                <strong style="color: #721c24;">Date:</strong> <%= violation.date %><br>
-                                <strong style="color: #721c24;">Broken Rules:</strong>
-                                <ul style="margin-top: 5px;">
-                                    <% if (Array.isArray(violation.brokenRules)) { %>
-                                        <% violation.brokenRules.forEach((rule) => { %>
-                                            <li style="color: #721c24;"><%= rule %></li>
-                                        <% }); %>
-                                    <% } else { %>
-                                        <li style="color: #721c24;">No rules listed</li>
-                                    <% } %>
-                                </ul>
-                            </li>
-                        <% }); %>
-                    </ul>
-                <% } else { %>
-                    <p style="color: #6c757d;">No violations in this period.</p>
-                <% } %>
-            </div>
-        <% }); %>
+    <h1 id="header3" style="text-align: center; color: #dc3545; margin-bottom: 30px;"><%= title %></h1>
+    <% if (typeof previousMonthViolations === 'undefined' || !previousMonthViolations) { %>
+        <div style="text-align: center; margin-bottom: 20px;">
+            <button onclick="window.location.href='/violations-history?previousMonth=true'" style="background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">View Previous Month Violations</button>
+        </div>
+        <div style="margin-bottom: 40px;">
+            <h2 style="text-align: center; color: #495057;">Violations Graph</h2>
+            <canvas id="violationsChart" width="400" height="200"></canvas>
+        </div>
     <% } else { %>
-        <h1 style="text-align: center; color: #6c757d;">No violations history yet.</h1>
+        <div style="text-align: center; margin-bottom: 20px;">
+            <button onclick="window.location.href='/violations-history'" style="background-color: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Back to Full History</button>
+        </div>
+        <div style="margin-bottom: 40px;">
+            <h2 style="text-align: center; color: #495057;">Previous Month Violations Summary</h2>
+            <canvas id="previousMonthChart" width="400" height="200"></canvas>
+        </div>
+        <h2 style="text-align: center; color: #495057;">Detailed Violations</h2>
+        <% if (typeof previousMonthViolations !== 'undefined' && previousMonthViolations && previousMonthViolations.length > 0) { %>
+            <ul id="list" style="list-style: none; padding: 0;">
+                <% previousMonthViolations.forEach((violation) => { %>
+                    <li style="background-color: #f8d7da; margin-bottom: 10px; padding: 10px; border-radius: 5px; border-left: 4px solid #dc3545;">
+                        <strong style="color: #721c24;">Date:</strong> <%= violation.date %><br>
+                        <strong style="color: #721c24;">Broken Rules:</strong>
+                        <ul style="margin-top: 5px;">
+                            <% if (Array.isArray(violation.brokenRules)) { %>
+                                <% violation.brokenRules.forEach((rule) => { %>
+                                    <li style="color: #721c24;"><%= rule %></li>
+                                <% }); %>
+                            <% } else { %>
+                                <li style="color: #721c24;">No rules listed</li>
+                            <% } %>
+                        </ul>
+                    </li>
+                <% }); %>
+            </ul>
+        <% } else { %>
+            <p style="text-align: center; color: #6c757d;">No violations in the previous month.</p>
+        <% } %>
     <% } %>
+    <% if (history && history.length > 0) { %>
+            <% history.forEach((entry, index) => { %>
+                <div style="margin-bottom: 20px; border: 1px solid #dee2e6; padding: 15px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                    <h3 style="color: #495057;">Archived on <%= new Date(entry.archivedAt).toLocaleString() %></h3>
+                    <% if (entry.periodStart) { %>
+                        <p style="color: #6c757d;">Period: <%= new Date(entry.periodStart).toLocaleDateString() %> to <%= new Date(entry.archivedAt).toLocaleDateString() %></p>
+                    <% } %>
+                    <% if (entry.violations && entry.violations.length > 0) { %>
+                        <ul id="list" style="list-style: none; padding: 0;">
+                            <% entry.violations.forEach((violation) => { %>
+                                <li style="background-color: #f8d7da; margin-bottom: 10px; padding: 10px; border-radius: 5px; border-left: 4px solid #dc3545;">
+                                    <strong style="color: #721c24;">Date:</strong> <%= violation.date %><br>
+                                    <strong style="color: #721c24;">Broken Rules:</strong>
+                                    <ul style="margin-top: 5px;">
+                                        <% if (Array.isArray(violation.brokenRules)) { %>
+                                            <% violation.brokenRules.forEach((rule) => { %>
+                                                <li style="color: #721c24;"><%= rule %></li>
+                                            <% }); %>
+                                        <% } else { %>
+                                            <li style="color: #721c24;">No rules listed</li>
+                                        <% } %>
+                                    </ul>
+                                </li>
+                            <% }); %>
+                        </ul>
+                    <% } else { %>
+                        <p style="color: #6c757d;">No violations in this period.</p>
+                    <% } %>
+                </div>
+            <% }); %>
+        <% } else { %>
+            <h1 style="text-align: center; color: #6c757d;">No violations history yet.</h1>
+        <% } %>
 </div>
 
-<script>
-    function toggleWeek(week) {
-        const element = document.getElementById('week-' + week);
-        element.style.display = element.style.display === 'none' ? 'block' : 'none';
-    }
 
-    // Process violations history data for trendline (only previous week's data)
-    const historyData = <%- JSON.stringify(history) %>;
-    if (historyData && historyData.length > 0) {
-        const latestEntry = historyData[historyData.length - 1]; // Get the most recent week's data
-        const countMap = {};
-        const allDates = new Set();
-
-        // Process only the latest entry's violations
-        latestEntry.violations.forEach(violation => {
-            violation.brokenRules.forEach(rule => {
-                const date = violation.date;
-                if (!countMap[rule]) countMap[rule] = {};
-                if (!countMap[rule][date]) countMap[rule][date] = 0;
-                countMap[rule][date]++;
-                allDates.add(date);
-            });
-        });
-
-        // Sort dates
-        const sortedDates = Array.from(allDates).sort();
-
-        // Prepare datasets for Chart.js
-        const datasets = Object.keys(countMap).map(rule => {
-            const data = sortedDates.map(date => countMap[rule][date] || 0);
-            return {
-                label: rule,
-                data: data,
-                borderColor: getRandomColor(),
-                fill: false
-            };
-        });
-
-        // Function to generate random color
-        function getRandomColor() {
-            const letters = '0123456789ABCDEF';
-            let color = '#';
-            for (let i = 0; i < 6; i++) {
-                color += letters[Math.floor(Math.random() * 16)];
-            }
-            return color;
-        }
-
-        // Create the chart
-        const ctx = document.getElementById('violationsChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: sortedDates,
-                datasets: datasets
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Date'
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Count'
-                        },
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-    }
-</script>

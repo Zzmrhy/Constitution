@@ -64,8 +64,8 @@ let lastReset = lastResetData.lastReset;
 (function validateLastReset() {
     const now = Date.now();
     if (!lastReset || typeof lastReset !== 'number' || lastReset > now) {
-        // Reset to last Monday 1:00 PM
-        lastReset = getNextMonday1PM(now - 7 * 24 * 60 * 60 * 1000).getTime();
+        // Reset to last Monday 1:00 AM
+        lastReset = getNextMonday1AM(now - 7 * 24 * 60 * 60 * 1000).getTime();
         fs.writeFileSync('./lastReset.json', JSON.stringify({ lastReset }, null, 2));
         console.log('lastReset was invalid or in future. Resetting to', new Date(lastReset).toISOString());
     }
@@ -99,6 +99,19 @@ function cleanupOldPunishmentSuggestions() {
     savePunishmentSuggestions();
 }
 
+// Function to clean up old violations history (older than 30 days)
+function cleanupOldViolationsHistory() {
+    const now = new Date();
+    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+    let history = readViolationsHistory();
+    history = history.filter(entry => {
+        const archivedAt = new Date(entry.archivedAt);
+        return (now - archivedAt) <= thirtyDaysMs;
+    });
+    saveViolationsHistory(history);
+    console.log('Old violations history cleaned up at', new Date().toISOString());
+}
+
 // Clean up old suggestions on startup
 cleanupOldSuggestions();
 
@@ -129,26 +142,26 @@ function saveViolationsHistory(list) {
     fs.writeFileSync('./violations_history.json', JSON.stringify(list, null, 2));
 }
 
-// Function to get the next Monday at 1:00 PM after a given timestamp
-function getNextMonday1PM(timestamp) {
+// Function to get the next Monday at 1:00 AM after a given timestamp
+function getNextMonday1AM(timestamp) {
     const date = new Date(timestamp);
     const dayOfWeek = date.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
     let daysUntilMonday = (1 - dayOfWeek + 7) % 7;
-    if (daysUntilMonday === 0 && date.getHours() < 13) {
-        // If it's Monday before 1 PM, next is today at 1 PM
+    if (daysUntilMonday === 0 && date.getHours() < 1) {
+        // If it's Monday before 1 AM, next is today at 1 AM
         daysUntilMonday = 0;
     } else if (daysUntilMonday === 0) {
-        // If it's Monday after 1 PM, next is next Monday
+        // If it's Monday after 1 AM, next is next Monday
         daysUntilMonday = 7;
     }
     date.setDate(date.getDate() + daysUntilMonday);
-    date.setHours(13, 0, 0, 0);
+    date.setHours(1, 0, 0, 0);
     return date;
 }
 
 // Check if violations need to be reset on startup
 const now = new Date();
-const nextReset = getNextMonday1PM(lastReset);
+const nextReset = getNextMonday1AM(lastReset);
 if (now >= nextReset) {
     // Archive existing violations before clearing
     try {
@@ -286,7 +299,7 @@ function saveVetoedSuggestions() {
 
 const SALT_ROUNDS = 10;
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 
 // Routes for rendering EJS views (moved to top to avoid conflict with API routes)
 app.get('/', (req, res) => {
@@ -383,7 +396,30 @@ app.get('/violations-history', (req, res) => {
     const user = payload;
     const isSubAdmin = payload && payload.subAdmin;
     const history = readViolationsHistory();
-res.render('layout', { title: 'Violations History', history, user, isSubAdmin });
+    const isPreviousMonth = req.query.previousMonth === 'true';
+
+    let previousMonthViolations = null;
+    let ruleCounts = {};
+
+    if (isPreviousMonth) {
+        const now = Date.now();
+        const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
+        previousMonthViolations = [];
+        history.forEach(entry => {
+            if (entry.archivedAt >= thirtyDaysAgo) {
+                previousMonthViolations = previousMonthViolations.concat(entry.violations);
+            }
+        });
+        // Aggregate by rule
+        previousMonthViolations.forEach(v => {
+            v.brokenRules.forEach(rule => {
+                ruleCounts[rule] = (ruleCounts[rule] || 0) + 1;
+            });
+        });
+        res.render('layout', { title: 'Previous Month Violations', history: null, previousMonthViolations, ruleCounts, user, isSubAdmin });
+    } else {
+        res.render('layout', { title: 'Violations History', history, previousMonthViolations, ruleCounts, user, isSubAdmin });
+    }
 });
 
 app.get('/head-admin-approvals', (req, res) => {
@@ -804,7 +840,7 @@ app.post('/api/signin', async (req, res) => {
         // create access & refresh tokens and set them as httpOnly cookies
         const currentUser = (usersData && usersData[userIndex]) || user;
         const payload = { Email: currentUser.Email, username: currentUser.username, admin: !!currentUser.admin || !!currentUser.headAdmin, subAdmin: !!currentUser.subAdmin, headAdmin: !!currentUser.headAdmin };
-        const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
+        const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
         const refreshToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
 
         console.log(`[SignIn] JWT access and refresh tokens created for email: ${email}`);
@@ -815,7 +851,7 @@ app.post('/api/signin', async (req, res) => {
         saveRefreshTokens(refreshList);
 
         // set cookies (httpOnly). For dev on localhost we do not set Secure, but in production set Secure: true
-        res.cookie('accessToken', accessToken, { httpOnly: true, sameSite: 'lax', maxAge: 15 * 60 * 1000 });
+        res.cookie('accessToken', accessToken, { httpOnly: true, sameSite: 'lax', maxAge: 7 * 24 * 60 * 60 * 1000 });
         res.cookie('refreshToken', refreshToken, { httpOnly: true, sameSite: 'lax', maxAge: 7 * 24 * 60 * 60 * 1000 });
 
         // Special handling for specific email: show captcha modal
@@ -868,7 +904,7 @@ app.post('/api/signup', async (req, res) => {
 
         // create tokens and set cookies
         const payload = { Email: newUser.Email, username: newUser.username, admin: !!newUser.admin, subAdmin: !!newUser.subAdmin, headAdmin: !!newUser.headAdmin };
-        const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
+        const accessToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
         const refreshToken = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
 
         // persist refresh token
@@ -963,8 +999,8 @@ app.post('/refresh', (req, res) => {
     try {
         const payload = jwt.verify(refreshToken, JWT_SECRET);
         // issue new access token
-        const accessToken = jwt.sign({ Email: payload.Email, admin: !!payload.admin || !!payload.headAdmin, subAdmin: !!payload.subAdmin, headAdmin: !!payload.headAdmin }, JWT_SECRET, { expiresIn: '15m' });
-        res.cookie('accessToken', accessToken, { httpOnly: true, sameSite: 'lax', maxAge: 15 * 60 * 1000 });
+        const accessToken = jwt.sign({ Email: payload.Email, admin: !!payload.admin || !!payload.headAdmin, subAdmin: !!payload.subAdmin, headAdmin: !!payload.headAdmin }, JWT_SECRET, { expiresIn: '7d' });
+        res.cookie('accessToken', accessToken, { httpOnly: true, sameSite: 'lax', maxAge: 7 * 24 * 60 * 60 * 1000 });
         return res.json({ success: true });
     } catch (err) {
         return res.status(403).json({ error: 'Refresh token invalid' });
@@ -1110,8 +1146,7 @@ app.delete('/api/violations/:index', async (req, res) => {
 });
 
 // Schedule to reset violations every Monday at 1:00 AM
-// Schedule to reset violations every Monday at 1:00 PM
-cron.schedule('0 13 * * 1', () => {
+cron.schedule('0 1 * * 1', () => {
     const now = new Date();
     try {
         // Archive current violations before clearing
@@ -1133,16 +1168,16 @@ cron.schedule('0 13 * * 1', () => {
     console.log('Violations archived and reset at', new Date().toISOString());
 });
 
-// New manual cleanup endpoint to archive and clear violations if Monday 1:00 PM passed since last reset
+// New manual cleanup endpoint to archive and clear violations if Monday 1:00 AM passed since last reset
 app.post('/api/violations/cleanup', (req, res) => {
     const payload = verifyAccessTokenFromReq(req);
     if (!payload || !(payload.admin || payload.headAdmin)) return res.status(401).json({ error: 'Unauthorized: Admin or Head Admin only' });
 
     const now = new Date();
-    const nextReset = getNextMonday1PM(lastReset);
+    const nextReset = getNextMonday1AM(lastReset);
 
     if (now < nextReset) {
-        return res.status(400).json({ error: 'Cleanup not allowed before Monday 1:00 PM' });
+        return res.status(400).json({ error: 'Cleanup not allowed before Monday 1:00 AM' });
     }
 
     try {

@@ -35,13 +35,5 @@
     "username": "Bradly McNeely",
     "Email": "CMP_BrMcNeely@students.ects.org",
     "Password": "$2b$10$5z0ZTkD54wUrvceuApLVkuP2VpWu3sDQvuFG/TRUwgFn3m8.NpeL."
-  },
-  {
-    "admin": false,
-    "subAdmin": false,
-    "headAdmin": false,
-    "username": "Aiden Rathbun",
-    "Email": "aiden.rathbun07@gmail.com",
-    "Password": "$2b$10$nnUu6L975L3YapmZpPrTPeQJo1DVuieSu1EFHD/PZea068/y3DILK"
   }
 ]
