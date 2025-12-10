@@ -1,77 +1,334 @@
 <div style="max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f8f9fa; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
     <h1 id="header3" style="text-align: center; color: #dc3545; margin-bottom: 30px;"><%= title %></h1>
-    <% if (typeof previousMonthViolations === 'undefined' || !previousMonthViolations) { %>
-        <div style="text-align: center; margin-bottom: 20px;">
-            <button onclick="window.location.href='/violations-history?previousMonth=true'" style="background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">View Previous Month Violations</button>
-        </div>
-        <div style="margin-bottom: 40px;">
-            <h2 style="text-align: center; color: #495057;">Violations Graph</h2>
-            <canvas id="violationsChart" width="400" height="200"></canvas>
-        </div>
-    <% } else { %>
-        <div style="text-align: center; margin-bottom: 20px;">
-            <button onclick="window.location.href='/violations-history'" style="background-color: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Back to Full History</button>
-        </div>
-        <div style="margin-bottom: 40px;">
-            <h2 style="text-align: center; color: #495057;">Previous Month Violations Summary</h2>
-            <canvas id="previousMonthChart" width="400" height="200"></canvas>
-        </div>
-        <h2 style="text-align: center; color: #495057;">Detailed Violations</h2>
-        <% if (typeof previousMonthViolations !== 'undefined' && previousMonthViolations && previousMonthViolations.length > 0) { %>
-            <ul id="list" style="list-style: none; padding: 0;">
-                <% previousMonthViolations.forEach((violation) => { %>
-                    <li style="background-color: #f8d7da; margin-bottom: 10px; padding: 10px; border-radius: 5px; border-left: 4px solid #dc3545;">
-                        <strong style="color: #721c24;">Date:</strong> <%= violation.date %><br>
-                        <strong style="color: #721c24;">Broken Rules:</strong>
-                        <ul style="margin-top: 5px;">
-                            <% if (Array.isArray(violation.brokenRules)) { %>
-                                <% violation.brokenRules.forEach((rule) => { %>
-                                    <li style="color: #721c24;"><%= rule %></li>
+
+    <!-- Stored Violations Trend -->
+    <div style="margin-bottom: 40px;">
+        <h2 style="text-align: center; color: #495057;">Stored Violations Trend</h2>
+        <p style="text-align: center; color: #6c757d; font-size: 14px;">This graph shows violations from the most recent archived period (12/8/2025), displaying how violations occurred over time within that week.</p>
+        <canvas id="violationsChart" width="400" height="200"></canvas>
+    </div>
+
+    <!-- Weekly Violations Trendline -->
+    <div style="margin-bottom: 40px;">
+        <h2 style="text-align: center; color: #495057;">Weekly Violations Trendline</h2>
+        <p style="text-align: center; color: #6c757d; font-size: 14px;">This trendline displays the number of violations per week, showing the weekly trend.</p>
+        <canvas id="cumulativeChart" width="400" height="200"></canvas>
+    </div>
+
+    <!-- Filtered Violations Display -->
+    <div id="filteredViolations" style="display: none; margin-bottom: 40px; border: 1px solid #dee2e6; padding: 15px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h3 id="filteredTitle" style="color: #495057;"></h3>
+        <div id="filteredList"></div>
+    </div>
+
+    <!-- Hidden Original Violations History -->
+    <div id="originalHistory" style="display: none;">
+        <% if (history && history.length > 0) { %>
+                <% history.forEach((entry, index) => { %>
+                    <div style="margin-bottom: 20px; border: 1px solid #dee2e6; padding: 15px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <h3 style="color: #495057;">Archived on <%= new Date(entry.archivedAt).toLocaleString() %></h3>
+                        <% if (entry.periodStart) { %>
+                            <p style="color: #6c757d;">Period: <%= new Date(entry.periodStart).toLocaleDateString() %> to <%= new Date(entry.archivedAt).toLocaleDateString() %></p>
+                        <% } %>
+                        <% if (entry.violations && entry.violations.length > 0) { %>
+                            <ul id="list" style="list-style: none; padding: 0;">
+                                <% entry.violations.forEach((violation) => { %>
+                                    <li style="background-color: #f8d7da; margin-bottom: 10px; padding: 10px; border-radius: 5px; border-left: 4px solid #dc3545;">
+                                        <strong style="color: #721c24;">Date:</strong> <%= violation.date %><br>
+                                        <strong style="color: #721c24;">Broken Rules:</strong>
+                                        <ul style="margin-top: 5px;">
+                                            <% if (Array.isArray(violation.brokenRules)) { %>
+                                                <% violation.brokenRules.forEach((rule) => { %>
+                                                    <li style="color: #721c24;"><%= rule %></li>
+                                                <% }); %>
+                                            <% } else { %>
+                                                <li style="color: #721c24;">No rules listed</li>
+                                            <% } %>
+                                        </ul>
+                                    </li>
                                 <% }); %>
-                            <% } else { %>
-                                <li style="color: #721c24;">No rules listed</li>
-                            <% } %>
-                        </ul>
-                    </li>
-                <% }); %>
-            </ul>
-        <% } else { %>
-            <p style="text-align: center; color: #6c757d;">No violations in the previous month.</p>
-        <% } %>
-    <% } %>
-    <% if (history && history.length > 0) { %>
-            <% history.forEach((entry, index) => { %>
-                <div style="margin-bottom: 20px; border: 1px solid #dee2e6; padding: 15px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                    <h3 style="color: #495057;">Archived on <%= new Date(entry.archivedAt).toLocaleString() %></h3>
-                    <% if (entry.periodStart) { %>
-                        <p style="color: #6c757d;">Period: <%= new Date(entry.periodStart).toLocaleDateString() %> to <%= new Date(entry.archivedAt).toLocaleDateString() %></p>
-                    <% } %>
-                    <% if (entry.violations && entry.violations.length > 0) { %>
-                        <ul id="list" style="list-style: none; padding: 0;">
-                            <% entry.violations.forEach((violation) => { %>
-                                <li style="background-color: #f8d7da; margin-bottom: 10px; padding: 10px; border-radius: 5px; border-left: 4px solid #dc3545;">
-                                    <strong style="color: #721c24;">Date:</strong> <%= violation.date %><br>
-                                    <strong style="color: #721c24;">Broken Rules:</strong>
-                                    <ul style="margin-top: 5px;">
-                                        <% if (Array.isArray(violation.brokenRules)) { %>
-                                            <% violation.brokenRules.forEach((rule) => { %>
-                                                <li style="color: #721c24;"><%= rule %></li>
-                                            <% }); %>
-                                        <% } else { %>
-                                            <li style="color: #721c24;">No rules listed</li>
-                                        <% } %>
-                                    </ul>
-                                </li>
-                            <% }); %>
-                        </ul>
-                    <% } else { %>
-                        <p style="color: #6c757d;">No violations in this period.</p>
-                    <% } %>
+                            </ul>
+                        <% } else { %>
+                            <p style="color: #6c757d;">No violations in this period.</p>
+                        <% } %>
                 </div>
             <% }); %>
         <% } else { %>
             <h1 style="text-align: center; color: #6c757d;">No violations history yet.</h1>
-        <% } %>
+    <% } %>
+    </div>
 </div>
+
+<!-- add Chart.js CDN so charts render reliably -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    // Pass server data to client-side JavaScript
+    window.violationsHistoryData = <%- JSON.stringify(history || []) %>;
+    window.ruleCountsData = <%- JSON.stringify(typeof ruleCounts !== 'undefined' ? ruleCounts : {}) %>;
+    window.dateCountsData = <%- JSON.stringify(typeof dateCounts !== 'undefined' ? dateCounts : {}) %>;
+    window.currentViolationsData = <%- JSON.stringify(currentViolations || []) %>;
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const history = window.violationsHistoryData || [];
+    const currentViolations = window.currentViolationsData || [];
+
+    // Helper to normalize any date-like value to YYYY-MM-DD
+    function normalizeDateToYMD(d) {
+        try {
+            const dt = new Date(d);
+            if (isNaN(dt)) return String(d);
+            return dt.toISOString().slice(0,10);
+        } catch (e) {
+            return String(d);
+        }
+    }
+
+    // -------------------------
+    // Sort archived history chronologically (oldest -> newest)
+    // -------------------------
+    const sortedHistory = history.slice().sort((a, b) => {
+        const aTs = Number(a.archivedAt) || 0;
+        const bTs = Number(b.archivedAt) || 0;
+        return aTs - bTs;
+    });
+
+    // -------------------------
+    // Build "Stored Violations Trend" from archived snapshots (entry.archivedAt)
+    // Each label represents an archived snapshot and its number is the total violations stored in that snapshot.
+    // -------------------------
+    const archivedLabels = sortedHistory.map(entry => normalizeDateToYMD(entry.archivedAt));
+    const archivedCounts = sortedHistory.map(entry =>
+        (entry.violations || []).reduce((sum, v) => sum + (Array.isArray(v.brokenRules) ? v.brokenRules.length : 1), 0)
+    );
+
+    // -------------------------
+    // Weekly aggregation (restore weekly/cumulative chart data)
+    // -------------------------
+    const weeklyData = {};
+    sortedHistory.forEach(entry => {
+        const weekLabel = new Date(entry.archivedAt).toLocaleDateString();
+        const totalViolations = (entry.violations || []).reduce((sum, v) => sum + (Array.isArray(v.brokenRules) ? v.brokenRules.length : 1), 0);
+        weeklyData[weekLabel] = (weeklyData[weekLabel] || 0) + totalViolations;
+    });
+
+    // Include currentViolations as "Current Week" snapshot (if desired)
+    const currentWeekTotal = (currentViolations || []).reduce((sum, v) => sum + (Array.isArray(v.brokenRules) ? v.brokenRules.length : 1), 0);
+    const currentWeekLabel = 'Current Week';
+    if (currentWeekTotal > 0) {
+        weeklyData[currentWeekLabel] = (weeklyData[currentWeekLabel] || 0) + currentWeekTotal;
+    }
+
+    const sortedWeeks = Object.keys(weeklyData).filter(w => w !== currentWeekLabel).sort((a,b) => new Date(a) - new Date(b));
+    if (weeklyData[currentWeekLabel]) sortedWeeks.push(currentWeekLabel);
+    const weeklyCounts = sortedWeeks.map(week => weeklyData[week]);
+
+    // Cumulative data (if needed elsewhere)
+    const cumulativeCounts = [];
+    let cumulativeSum = 0;
+    weeklyCounts.forEach(count => {
+        cumulativeSum += count;
+        cumulativeCounts.push(cumulativeSum);
+    });
+
+    // -------------------------
+    // Violations chart (by archived snapshot)
+    // -------------------------
+    const violationsChartCanvas = document.getElementById('violationsChart');
+    if (violationsChartCanvas) {
+        const ctx = violationsChartCanvas.getContext('2d');
+        let chart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: archivedLabels,
+                datasets: [{
+                    label: 'Stored Violations (per archive)',
+                    data: archivedCounts,
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Stored Violations by Archive Date'
+                    }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                },
+                onClick: function(evt, elements) {
+                    if (elements && elements.length > 0) {
+                        const index = elements[0].index;
+                        // Map the clicked index to the sortedHistory entry
+                        const foundEntry = sortedHistory[index];
+                        if (foundEntry) {
+                            showViolationsForArchive(normalizeDateToYMD(foundEntry.archivedAt), foundEntry);
+                        }
+                    }
+                }
+            }
+        });
+
+        // Show violations that were stored in the archived snapshot (use the entry passed)
+        function showViolationsForArchive(dateKey, entry) {
+            const filteredViolationsDiv = document.getElementById('filteredViolations');
+            const filteredTitle = document.getElementById('filteredTitle');
+            const filteredList = document.getElementById('filteredList');
+
+            filteredTitle.textContent = `Violations stored on ${dateKey}`;
+            filteredList.innerHTML = '';
+
+            const foundEntry = entry || sortedHistory.find(e => normalizeDateToYMD(e.archivedAt) === dateKey);
+
+            if (!foundEntry || !(foundEntry.violations || []).length) {
+                filteredList.innerHTML = '<p style="color: #6c757d;">No violations stored for this archive.</p>';
+                filteredViolationsDiv.style.display = 'block';
+                return;
+            }
+
+            foundEntry.violations.forEach(violation => {
+                const li = document.createElement('li');
+                li.style.backgroundColor = '#f8d7da';
+                li.style.marginBottom = '10px';
+                li.style.padding = '10px';
+                li.style.borderRadius = '5px';
+                li.style.borderLeft = '4px solid #dc3545';
+                li.innerHTML = `
+                    <strong style="color: #721c24;">Recorded date:</strong> ${violation.date || '(no date)'}<br>
+                    <strong style="color: #721c24;">Broken Rules:</strong>
+                    <ul style="margin-top: 5px;">
+                        ${Array.isArray(violation.brokenRules) ? violation.brokenRules.map(rule => `<li style="color: #721c24;">${rule}</li>`).join('') : '<li style="color: #721c24;">No rules listed</li>'}
+                    </ul>
+                `;
+                filteredList.appendChild(li);
+            });
+
+            filteredViolationsDiv.style.display = 'block';
+        }
+
+        // Add view switch buttons (preserve original behavior)
+        const chartContainer = violationsChartCanvas.parentElement;
+        const viewDiv = document.createElement('div');
+        viewDiv.style.textAlign = 'center';
+        viewDiv.style.marginTop = '10px';
+        const graphBtn = document.createElement('button');
+        graphBtn.textContent = 'Graph View';
+        graphBtn.style.marginRight = '10px';
+        graphBtn.style.padding = '5px 10px';
+        graphBtn.style.backgroundColor = '#007bff';
+        graphBtn.style.color = 'white';
+        graphBtn.style.border = 'none';
+        graphBtn.style.borderRadius = '3px';
+        graphBtn.style.cursor = 'pointer';
+        const trendlineBtn = document.createElement('button');
+        trendlineBtn.textContent = 'Trendline View';
+        trendlineBtn.style.padding = '5px 10px';
+        trendlineBtn.style.backgroundColor = '#6c757d';
+        trendlineBtn.style.color = 'white';
+        trendlineBtn.style.border = 'none';
+        trendlineBtn.style.borderRadius = '3px';
+        trendlineBtn.style.cursor = 'pointer';
+        viewDiv.appendChild(graphBtn);
+        viewDiv.appendChild(trendlineBtn);
+        chartContainer.appendChild(viewDiv);
+
+        graphBtn.addEventListener('click', function() {
+            chart.config.type = 'bar';
+            chart.options.plugins.title.text = 'Stored Violations by Archive Date';
+            chart.update();
+            graphBtn.style.backgroundColor = '#007bff';
+            trendlineBtn.style.backgroundColor = '#6c757d';
+        });
+
+        trendlineBtn.addEventListener('click', function() {
+            chart.config.type = 'line';
+            chart.options.plugins.title.text = 'Stored Violations Trend';
+            chart.update();
+            trendlineBtn.style.backgroundColor = '#007bff';
+            graphBtn.style.backgroundColor = '#6c757d';
+        });
+    }
+
+    // -------------------------
+    // Cumulative chart (weekly) — restored and using sortedWeeks / weeklyCounts
+    // -------------------------
+    const cumulativeChartCanvas = document.getElementById('cumulativeChart');
+    if (cumulativeChartCanvas) {
+        const ctx = cumulativeChartCanvas.getContext('2d');
+        let chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: sortedWeeks,
+                datasets: [{
+                    label: 'Weekly Violations',
+                    data: weeklyCounts,
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    tension: 0.1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Weekly Violations Trendline'
+                    }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        // Add view switch buttons (same pattern)
+        const chartContainer = cumulativeChartCanvas.parentElement;
+        const viewDiv = document.createElement('div');
+        viewDiv.style.textAlign = 'center';
+        viewDiv.style.marginTop = '10px';
+        const graphBtn = document.createElement('button');
+        graphBtn.textContent = 'Graph View';
+        graphBtn.style.marginRight = '10px';
+        graphBtn.style.padding = '5px 10px';
+        graphBtn.style.backgroundColor = '#6c757d';
+        graphBtn.style.color = 'white';
+        graphBtn.style.border = 'none';
+        graphBtn.style.borderRadius = '3px';
+        graphBtn.style.cursor = 'pointer';
+        const trendlineBtn = document.createElement('button');
+        trendlineBtn.textContent = 'Trendline View';
+        trendlineBtn.style.padding = '5px 10px';
+        trendlineBtn.style.backgroundColor = '#007bff';
+        trendlineBtn.style.color = 'white';
+        trendlineBtn.style.border = 'none';
+        trendlineBtn.style.borderRadius = '3px';
+        trendlineBtn.style.cursor = 'pointer';
+        viewDiv.appendChild(graphBtn);
+        viewDiv.appendChild(trendlineBtn);
+        chartContainer.appendChild(viewDiv);
+
+        graphBtn.addEventListener('click', function() {
+            chart.config.type = 'bar';
+            chart.options.plugins.title.text = 'Cumulative Violations by Week';
+            chart.update();
+            graphBtn.style.backgroundColor = '#007bff';
+            trendlineBtn.style.backgroundColor = '#6c757d';
+        });
+
+        trendlineBtn.addEventListener('click', function() {
+            chart.config.type = 'line';
+            chart.options.plugins.title.text = 'Cumulative Violations Trendline';
+            chart.update();
+            trendlineBtn.style.backgroundColor = '#007bff';
+            graphBtn.style.backgroundColor = '#6c757d';
+        });
+    }
+});
+</script>
 
 

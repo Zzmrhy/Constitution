@@ -299,7 +299,7 @@ function saveVetoedSuggestions() {
 
 const SALT_ROUNDS = 10;
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 3000;
 
 // Routes for rendering EJS views (moved to top to avoid conflict with API routes)
 app.get('/', (req, res) => {
@@ -396,29 +396,73 @@ app.get('/violations-history', (req, res) => {
     const user = payload;
     const isSubAdmin = payload && payload.subAdmin;
     const history = readViolationsHistory();
-    const isPreviousMonth = req.query.previousMonth === 'true';
+    let view = req.query.view; // 'lastWeek' or 'previousMonth'
+
+    // Reload current violations
+    let currentViolations = [];
+    try {
+        const violationsData = JSON.parse(fs.readFileSync(path.join(__dirname, "violations.json"), 'utf8'));
+        currentViolations = violationsData.violations || [];
+    } catch (err) {
+        console.error("Failed to load violations.json", err);
+    }
 
     let previousMonthViolations = null;
     let ruleCounts = {};
 
-    if (isPreviousMonth) {
-        const now = Date.now();
-        const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
+    if (view === 'lastWeek') {
         previousMonthViolations = [];
-        history.forEach(entry => {
-            if (entry.archivedAt >= thirtyDaysAgo) {
-                previousMonthViolations = previousMonthViolations.concat(entry.violations);
-            }
-        });
+        // Always show the most recent archived week's violations
+        if (history.length > 0) {
+            previousMonthViolations = previousMonthViolations.concat(history[history.length - 1].violations);
+        }
         // Aggregate by rule
         previousMonthViolations.forEach(v => {
             v.brokenRules.forEach(rule => {
                 ruleCounts[rule] = (ruleCounts[rule] || 0) + 1;
             });
         });
-        res.render('layout', { title: 'Previous Month Violations', history: null, previousMonthViolations, ruleCounts, user, isSubAdmin });
+        res.render('layout', { title: 'Last Week Violations', history, previousMonthViolations, ruleCounts, user, isSubAdmin, currentViolations, view });
+    } else if (view === 'previousMonth') {
+        const now = Date.now();
+        const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000;
+        previousMonthViolations = [];
+        const recentEntries = history.filter(entry => entry.archivedAt >= thirtyDaysAgo);
+        if (recentEntries.length > 1) {
+            // Sort descending by archivedAt
+            recentEntries.sort((a, b) => b.archivedAt - a.archivedAt);
+            // Take all except the most recent (which is last week)
+            const previousEntries = recentEntries.slice(1);
+            previousEntries.forEach(entry => {
+                previousMonthViolations = previousMonthViolations.concat(entry.violations);
+            });
+        } else if (recentEntries.length === 1) {
+            // Only the most recent, so no previous month violations
+        } else {
+            // No recent entries, include the most recent history entry if exists
+            if (history.length > 0) {
+                previousMonthViolations = previousMonthViolations.concat(history[history.length - 1].violations);
+            }
+        }
+        // Aggregate by date
+        const dateCounts = {};
+        previousMonthViolations.forEach(v => {
+            const dateKey = new Date(v.date).toLocaleDateString();
+            dateCounts[dateKey] = (dateCounts[dateKey] || 0) + v.brokenRules.length;
+        });
+        res.render('layout', { title: 'Previous Month Violations', history, previousMonthViolations, dateCounts, user, isSubAdmin, currentViolations, view });
     } else {
-        res.render('layout', { title: 'Violations History', history, previousMonthViolations, ruleCounts, user, isSubAdmin });
+        // Default view: show most recent archived period in the graph
+        let ruleCounts = {};
+        if (history.length > 0) {
+            const mostRecent = history[history.length - 1];
+            mostRecent.violations.forEach(v => {
+                v.brokenRules.forEach(rule => {
+                    ruleCounts[rule] = (ruleCounts[rule] || 0) + 1;
+                });
+            });
+        }
+        res.render('layout', { title: 'Violations History', history, previousMonthViolations: undefined, ruleCounts, dateCounts: {}, user, isSubAdmin, currentViolations, view });
     }
 });
 
