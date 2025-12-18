@@ -428,5 +428,32 @@
         ]
       }
     ]
+  },
+  {
+    "archivedAt": 1765817872746,
+    "periodStart": 1765216800061,
+    "violations": [
+      {
+        "date": "2025-12-10T19:15:46.320Z",
+        "text": "Ben is playing a game",
+        "brokenRules": [
+          "Ben shall not become unprofessional"
+        ]
+      },
+      {
+        "date": "2025-12-11T17:22:08.369Z",
+        "text": "Ben sounded like an ostrich",
+        "brokenRules": [
+          "No animal noises"
+        ]
+      },
+      {
+        "date": "2025-12-11T17:45:41.126Z",
+        "text": "Ben told Matt to shake it (asked him to make it jiggle)",
+        "brokenRules": [
+          "No adult jokes"
+        ]
+      }
+    ]
   }
 ]

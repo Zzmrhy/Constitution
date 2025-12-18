@@ -1,3 +1,46 @@
 {
-  "violations": []
+  "violations": [
+    {
+      "date": "2025-12-18T17:21:08.105Z",
+      "text": "Ben sounded like a monkey",
+      "brokenRules": [
+        "No animal noises"
+      ]
+    },
+    {
+      "date": "2025-12-18T17:22:02.642Z",
+      "text": "Ben did Mongolian throat singing",
+      "brokenRules": [
+        "No weird voices or voice impressions"
+      ]
+    },
+    {
+      "date": "2025-12-18T18:17:34.476Z",
+      "text": "Ben had a Mountain Dew Voltage",
+      "brokenRules": [
+        "No mountain dew"
+      ]
+    },
+    {
+      "date": "2025-12-18T18:30:17.888Z",
+      "text": "Ben was scissoring",
+      "brokenRules": [
+        "No adultery"
+      ]
+    },
+    {
+      "date": "2025-12-18T18:50:06.847Z",
+      "text": "Ben is messing with sound boards",
+      "brokenRules": [
+        "No sound boards"
+      ]
+    },
+    {
+      "date": "2025-12-18T18:52:39.907Z",
+      "text": "Ben is making 9/11 jokes",
+      "brokenRules": [
+        "Ben may not ben"
+      ]
+    }
+  ]
 }

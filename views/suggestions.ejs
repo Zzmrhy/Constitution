@@ -26,12 +26,17 @@
     <!-- Display suggestions (visible to admins and sub-admins) -->
     <% if (isAdmin || isSubAdmin) { %>
         <div id="suggestions-list" style="background-color: white; border: 1px solid #dee2e6; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <h3 style="color: #495057;">Pending Suggestions</h3>
+            <h3 id="pending-header" class="pending-suggestions" style="color: #495057;">Pending Suggestions...</h3>
             <div id="suggestions-container"></div>
         </div>
     <% } %>
 </div>
 <% } %>
+
+<script>
+    const currentUserUsername = '<%= user ? user.username : "" %>';
+    const currentUserIsSubAdmin = <%= !!isSubAdmin %>;
+</script>
 
 <script>
     // Handle suggestion submission (simplified)
