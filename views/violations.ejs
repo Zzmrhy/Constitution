@@ -38,6 +38,9 @@
                 <h3 style="color: #495057; margin-bottom: 15px;"><%= violation.text %></h3>
                 <p style="color: #6c757d; margin-bottom: 10px;">Classification: <%= violation.brokenRules.join(', ') %></p>
                 <p style="color: #6c757d; margin-bottom: 15px;">Date: <%= new Date(violation.date).toLocaleString() %></p>
+                <% if (currentPunishment && currentPunishment.length > 0) { %>
+                    <p style="color: #dc3545; margin-bottom: 15px;">Current Punishments: <%= currentPunishment.map(p => p.punishment || p.text).join(', ') %></p>
+                <% } %>
                 <!-- Delete button for admins and sub-admins -->
                 <% if (isAdmin || isSubAdmin || isHeadAdmin) { %>
                     <form class="delete-form" data-id="<%= index %>" style="display: inline; margin-top: 15px;">

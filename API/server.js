@@ -116,17 +116,17 @@ function cleanupOldViolationsHistory() {
 cleanupOldSuggestions();
 
 function getCurrentPunishment(totalBroken) {
-  if (totalBroken === 0) return null;
-  // Sort punishments by min ascending
-  const sortedPunishments = punishments.slice().sort((a, b) => a.min - b.min);
-  // Find the punishment with the highest min <= totalBroken
-  for (let i = sortedPunishments.length - 1; i >= 0; i--) {
-    const p = sortedPunishments[i];
-    if (totalBroken >= p.min) {
-      return p;
-    }
+  if (totalBroken === 0) return [];
+  // Get all applicable punishments where totalBroken >= min and (max is null or totalBroken <= max)
+  const applicablePunishments = punishments.filter(p => totalBroken >= p.min && (p.max === null || totalBroken <= p.max));
+  // Randomly select up to 2 punishments
+  const selected = [];
+  const maxPunishments = 2;
+  while (selected.length < maxPunishments && applicablePunishments.length > 0) {
+    const randomIndex = Math.floor(Math.random() * applicablePunishments.length);
+    selected.push(applicablePunishments.splice(randomIndex, 1)[0]);
   }
-  return null;
+  return selected;
 }
 
 // Helper for violations history (weekly archives)
@@ -329,7 +329,7 @@ app.get('/violations', (req, res) => {
     const currentPunishment = getCurrentPunishment(totalBroken);
     const editingIndex = req.query.edit ? parseInt(req.query.edit) : null;
 
-    res.render('layout', { title: 'Violations', violations: currentViolations, totalBroken, currentPunishment, user, isAdmin, isHeadAdmin, isSubAdmin, rules, editingIndex, lastReset });
+    res.render('layout', { title: 'Violations', violations: currentViolations, totalBroken, currentPunishment, user, isAdmin, isHeadAdmin, isSubAdmin, rules, editingIndex, lastReset, getCurrentPunishment });
 });
 
 app.get('/punishments', (req, res) => {
@@ -363,7 +363,7 @@ app.get('/punishments', (req, res) => {
     const totalBroken = violations.reduce((sum, v) => sum + v.brokenRules.length, 0);
     const currentPunishment = getCurrentPunishment(totalBroken);
 
-    res.render('layout', { title: 'Punishments', punishments: mappedPunishments, user, isAdmin, isHeadAdmin, isSubAdmin, totalBroken, currentPunishment });
+    res.render('layout', { title: 'Punishments', punishments: mappedPunishments, user, isAdmin, isHeadAdmin, isSubAdmin, totalBroken, currentPunishment, getCurrentPunishment });
 });
 
 app.get('/rules', (req, res) => {
@@ -462,7 +462,7 @@ app.get('/violations-history', (req, res) => {
                 });
             });
         }
-        res.render('layout', { title: 'Violations History', history, previousMonthViolations: undefined, ruleCounts, dateCounts: {}, user, isSubAdmin, currentViolations, view });
+        res.render('layout', { title: 'Violations History', history, previousMonthViolations: undefined, ruleCounts, dateCounts: {}, user, isSubAdmin, currentViolations, view, getCurrentPunishment });
     }
 });
 

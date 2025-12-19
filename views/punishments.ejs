@@ -1,3 +1,7 @@
+<div style="background-color: #f8d7da; padding: 20px; border-radius: 8px; border-left: 5px solid #dc3545; margin-bottom: 20px;">
+    <h2 id='header3' style="color: #721c24; margin-bottom: 10px;">Current Punishments: <%= currentPunishment && currentPunishment.length > 0 ? currentPunishment.map(p => p.punishment || p.text).join(', ') : 'None' %></h2>
+</div>
+
 <h2>Punishments List</h2>
 <% if (punishments && punishments.length > 0) { %>
 <ul style="list-style-type: none; padding: 0;">
