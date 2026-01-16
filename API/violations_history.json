@@ -455,5 +455,128 @@
         ]
       }
     ]
+  },
+  {
+    "archivedAt": 1766422970303,
+    "periodStart": 1765817872746,
+    "violations": [
+      {
+        "date": "2025-12-18T17:21:08.105Z",
+        "text": "Ben sounded like a monkey",
+        "brokenRules": [
+          "No animal noises"
+        ]
+      },
+      {
+        "date": "2025-12-18T17:22:02.642Z",
+        "text": "Ben did Mongolian throat singing",
+        "brokenRules": [
+          "No weird voices or voice impressions"
+        ]
+      },
+      {
+        "date": "2025-12-18T18:17:34.476Z",
+        "text": "Ben had a Mountain Dew Voltage",
+        "brokenRules": [
+          "No mountain dew"
+        ]
+      },
+      {
+        "date": "2025-12-18T18:30:17.888Z",
+        "text": "Ben was scissoring",
+        "brokenRules": [
+          "No adultery"
+        ]
+      },
+      {
+        "date": "2025-12-18T18:50:06.847Z",
+        "text": "Ben is messing with sound boards",
+        "brokenRules": [
+          "No sound boards"
+        ]
+      },
+      {
+        "date": "2025-12-18T18:52:39.907Z",
+        "text": "Ben is making 9/11 jokes",
+        "brokenRules": [
+          "Ben may not ben"
+        ]
+      }
+    ]
+  },
+  {
+    "archivedAt": 1767633629522,
+    "periodStart": 1766422970303,
+    "violations": [
+      {
+        "date": "2025-12-22T18:57:28.239Z",
+        "text": "Ben burped",
+        "brokenRules": [
+          "No burping"
+        ]
+      },
+      {
+        "date": "2025-12-22T18:57:37.250Z",
+        "text": "Ben burped, again",
+        "brokenRules": [
+          "No burping"
+        ]
+      },
+      {
+        "date": "2025-12-22T18:58:27.808Z",
+        "text": "Ben is playing a game outside of break (roblox)",
+        "brokenRules": [
+          "No computer games"
+        ]
+      },
+      {
+        "date": "2025-12-22T19:03:29.248Z",
+        "text": "Ben wants to drink Preston's pee...",
+        "brokenRules": [
+          "No adultery"
+        ]
+      },
+      {
+        "date": "2025-12-22T19:08:23.855Z",
+        "text": "Ben threw a card",
+        "brokenRules": [
+          "Ben shall not become unprofessional"
+        ]
+      },
+      {
+        "date": "2025-12-22T19:08:41.544Z",
+        "text": "Ben pressed num lock",
+        "brokenRules": [
+          "Ben may not ben"
+        ]
+      }
+    ]
+  },
+  {
+    "archivedAt": 1768324378452,
+    "periodStart": 1767633629522,
+    "violations": [
+      {
+        "date": "2026-01-05T18:16:43.595Z",
+        "text": "Ben meowed, he made a bad joke so he was not spared this violation",
+        "brokenRules": [
+          "No animal noises"
+        ]
+      },
+      {
+        "date": "2026-01-07T17:00:20.433Z",
+        "text": "Ben drove 45mph to school",
+        "brokenRules": [
+          "No driving over 10mph"
+        ]
+      },
+      {
+        "date": "2026-01-07T17:22:10.199Z",
+        "text": "Ben spoke a language",
+        "brokenRules": [
+          "Ben may not speak any foreign languages (including latin and any other languages)"
+        ]
+      }
+    ]
   }
 ]

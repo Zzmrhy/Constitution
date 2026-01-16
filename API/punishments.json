@@ -69,7 +69,7 @@
     {
       "id": "13",
       "min": 100,
-      "max": null,
+      "max": 104,
       "punishment": "1941 Will Be Caused By Yours Truly"
     },
     {
@@ -95,6 +95,18 @@
       "min": 70,
       "max": 74,
       "punishment": "We'll Call Michael's Mom To Have Her Give Michael A Spanking"
+    },
+    {
+      "id": "1764959906433",
+      "min": 75,
+      "max": 79,
+      "punishment": "We'll Smack Ben With A Raw Fish"
+    },
+    {
+      "id": "1764959906434",
+      "min": 80,
+      "max": 84,
+      "punishment": "Ben Will Be Turned Into Cheese"
     }
   ]
 }
