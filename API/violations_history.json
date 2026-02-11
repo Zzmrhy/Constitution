@@ -578,5 +578,127 @@
         ]
       }
     ]
+  },
+  {
+    "archivedAt": 1768931397185,
+    "periodStart": 1768324378452,
+    "violations": [
+      {
+        "date": "2026-01-13T17:41:45.323Z",
+        "text": "Ben said fish",
+        "brokenRules": [
+          "ben may not say 'fish'"
+        ]
+      },
+      {
+        "date": "2026-01-13T17:42:34.256Z",
+        "text": "Ben is being funky",
+        "brokenRules": [
+          "No adult jokes"
+        ]
+      },
+      {
+        "date": "2026-01-16T18:55:46.860Z",
+        "text": "Ben is wearing pajamas",
+        "brokenRules": [
+          "No breaking school rules"
+        ]
+      }
+    ]
+  },
+  {
+    "archivedAt": 1769534738093,
+    "periodStart": 1768931397185,
+    "violations": [
+      {
+        "date": "2026-01-23T17:06:59.052Z",
+        "text": "Ben acted like a black man, \"west side\" talk",
+        "brokenRules": [
+          "No talking about or referring the ghetto"
+        ]
+      },
+      {
+        "date": "2026-01-23T17:07:23.851Z",
+        "text": "Ben had a stroke",
+        "brokenRules": [
+          "No adult jokes"
+        ]
+      },
+      {
+        "date": "2026-01-23T17:34:47.114Z",
+        "text": "Ben rubbed against my leg",
+        "brokenRules": [
+          "No touching people without consent"
+        ]
+      },
+      {
+        "date": "2026-01-23T17:36:06.372Z",
+        "text": "Ben already failed to follow the constitution",
+        "brokenRules": [
+          "Ben has to follow the constitution"
+        ]
+      },
+      {
+        "date": "2026-01-23T17:38:28.725Z",
+        "text": "Ben's school is next to an elementary school",
+        "brokenRules": [
+          "Ben must stay at least 31 yards away from elementary schools"
+        ]
+      }
+    ]
+  },
+  {
+    "archivedAt": 1770317501257,
+    "periodStart": 1769534738093,
+    "violations": [
+      {
+        "date": "2026-01-28T18:33:26.806Z",
+        "text": "Ben is playing a game outside break time",
+        "brokenRules": [
+          "No computer games"
+        ]
+      },
+      {
+        "date": "2026-01-28T18:36:33.389Z",
+        "text": "Ben acted like a black man, again",
+        "brokenRules": [
+          "No talking about or referring the ghetto"
+        ]
+      },
+      {
+        "date": "2026-01-28T18:40:33.677Z",
+        "text": "Ben threw up gang signs",
+        "brokenRules": [
+          "No talking about or referring the ghetto"
+        ]
+      },
+      {
+        "date": "2026-01-28T18:40:51.317Z",
+        "text": "Ben threw up another gang sign",
+        "brokenRules": [
+          "No talking about or referring the ghetto"
+        ]
+      },
+      {
+        "date": "2026-01-28T18:41:23.381Z",
+        "text": "Ben already failed to follow the constitution",
+        "brokenRules": [
+          "Ben has to follow the constitution"
+        ]
+      }
+    ]
+  },
+  {
+    "archivedAt": 1770834032593,
+    "periodStart": 1770317501257,
+    "violations": [
+      {
+        "date": "2026-02-05T18:55:03.632Z",
+        "text": "Ben looked at his computer and couldn't look away",
+        "brokenRules": [
+          "No adultery"
+        ]
+      }
+    ]
   }
 ]

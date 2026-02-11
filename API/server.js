@@ -51,11 +51,12 @@ app.engine('ejs', ejsMate);
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../views'));
 
-let rules = data.rules;
+let rules = data.rules.map(r => typeof r === 'string' ? { text: r, addedBy: 'Unknown' } : r);
 let violations = violationsData.violations.map(v => {
   if (typeof v.brokenRules === 'string') {
     v.brokenRules = [v.brokenRules];
   }
+  if (!v.addedBy) v.addedBy = 'Unknown';
   return v;
 });
 let lastReset = lastResetData.lastReset;
@@ -99,15 +100,18 @@ function cleanupOldPunishmentSuggestions() {
     savePunishmentSuggestions();
 }
 
-// Function to clean up old violations history (older than 30 days)
+// Function to clean up old violations history (older than 1 month based on violation dates)
 function cleanupOldViolationsHistory() {
     const now = new Date();
-    const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
+    const oneMonthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     let history = readViolationsHistory();
-    history = history.filter(entry => {
-        const archivedAt = new Date(entry.archivedAt);
-        return (now - archivedAt) <= thirtyDaysMs;
-    });
+    history = history.map(entry => {
+        entry.violations = entry.violations.filter(v => {
+            const violationDate = new Date(v.date);
+            return violationDate > oneMonthAgo;
+        });
+        return entry;
+    }).filter(entry => entry.violations.length > 0);
     saveViolationsHistory(history);
     console.log('Old violations history cleaned up at', new Date().toISOString());
 }
@@ -299,7 +303,7 @@ function saveVetoedSuggestions() {
 
 const SALT_ROUNDS = 10;
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 
 // Routes for rendering EJS views (moved to top to avoid conflict with API routes)
 app.get('/', (req, res) => {
@@ -329,7 +333,7 @@ app.get('/violations', (req, res) => {
     const currentPunishment = getCurrentPunishment(totalBroken);
     const editingIndex = req.query.edit ? parseInt(req.query.edit) : null;
 
-    res.render('layout', { title: 'Violations', violations: currentViolations, totalBroken, currentPunishment, user, isAdmin, isHeadAdmin, isSubAdmin, rules, editingIndex, lastReset, getCurrentPunishment });
+    res.render('layout', { title: 'Violations', violations: currentViolations, totalBroken, currentPunishment, user, isAdmin, isHeadAdmin, isSubAdmin, rules, editingIndex, lastReset, getCurrentPunishment, users: readAllUsers() });
 });
 
 app.get('/punishments', (req, res) => {
@@ -386,7 +390,7 @@ app.get('/rules', (req, res) => {
     const totalBroken = violations.reduce((sum, v) => sum + v.brokenRules.length, 0);
     const currentPunishment = getCurrentPunishment(totalBroken);
 
-res.render('layout', { title: 'Rules', rules: currentRules, isAdmin, isHeadAdmin, isSubAdmin, user, totalBroken, currentPunishment });
+res.render('layout', { title: 'Rules', rules: currentRules, isAdmin, isHeadAdmin, isSubAdmin, user, totalBroken, currentPunishment, users: readAllUsers() });
 });
 
 app.get('/violations-history', (req, res) => {
@@ -462,7 +466,17 @@ app.get('/violations-history', (req, res) => {
                 });
             });
         }
-        res.render('layout', { title: 'Violations History', history, previousMonthViolations: undefined, ruleCounts, dateCounts: {}, user, isSubAdmin, currentViolations, view, getCurrentPunishment });
+        // Compute total rule counts across all history
+        let totalRuleCounts = {};
+        history.forEach(entry => {
+            entry.violations.forEach(v => {
+                v.brokenRules.forEach(rule => {
+                    totalRuleCounts[rule] = (totalRuleCounts[rule] || 0) + 1;
+                });
+            });
+        });
+
+        res.render('layout', { title: 'Violations History', history, previousMonthViolations: undefined, ruleCounts, dateCounts: {}, user, isSubAdmin, currentViolations, view, getCurrentPunishment, totalRuleCounts });
     }
 });
 
@@ -821,7 +835,8 @@ app.post('/api/rules', (req, res) => {
         if (!(payload.admin || payload.headAdmin)) {
             return res.status(401).json({ error: 'Unauthorized: Admins or Head Admins only' });
         }
-        const index = currentRules.indexOf(rule);
+        const ruleText = rule;
+        const index = currentRules.findIndex(r => (typeof r === 'string' ? r : r.text) === ruleText);
         if (index !== -1) {
             currentRules.splice(index, 1);
             fs.writeFileSync('./rules.json', JSON.stringify({ rules: currentRules }, null, 2));
@@ -834,7 +849,7 @@ app.post('/api/rules', (req, res) => {
         if (!payload.admin) {
             return res.status(403).json({ error: 'Forbidden: Head Admins cannot add rules' });
         }
-        currentRules.push(rule);
+        currentRules.push({ text: rule, addedBy: payload.username });
         fs.writeFileSync('./rules.json', JSON.stringify({ rules: currentRules }, null, 2));
         res.redirect(redirect || '/rules');
     }
@@ -1169,7 +1184,7 @@ app.post('/api/violations', async (req, res) => {
     }
 
     const brokenRules = rules.split(',').map(s => s.trim()).filter(s => s);
-    const newViolation = { date: new Date().toISOString(), text: text.trim(), brokenRules };
+    const newViolation = { date: new Date().toISOString(), text: text.trim(), brokenRules, addedBy: payload.username };
     violations.push(newViolation);
     fs.writeFileSync('./violations.json', JSON.stringify({violations: violations}, null, 2));
     res.status(201).json({ success: true });

@@ -10,7 +10,7 @@
                 <label for="violation-rule" style="display: block; margin-bottom: 10px; color: #495057;">Select Broken Rule(s):</label>
                 <select id="violation-rule" multiple style="width: 100%; padding: 15px; border: 1px solid #ced4da; border-radius: 4px; margin-bottom: 15px; height: 120px;">
                     <% rules.forEach(rule => { %>
-                        <option value="<%= rule %>"><%= rule %></option>
+                        <option value="<%= typeof rule === 'string' ? rule : rule.text %>"><%= typeof rule === 'string' ? rule : rule.text %></option>
                     <% }); %>
                 </select>
                 <button type="submit" id='btn' style="background-color: #007bff; color: white; border: none; padding: 12px 25px; border-radius: 4px; cursor: pointer;">Add Violation</button>
@@ -38,6 +38,11 @@
                 <h3 style="color: #495057; margin-bottom: 15px;"><%= violation.text %></h3>
                 <p style="color: #6c757d; margin-bottom: 10px;">Classification: <%= violation.brokenRules.join(', ') %></p>
                 <p style="color: #6c757d; margin-bottom: 15px;">Date: <%= new Date(violation.date).toLocaleString() %></p>
+                <% if (violation.addedBy) { %>
+                    <% const user = users.find(u => u.username === violation.addedBy); %>
+                    <% const roleColor = user && user.headAdmin ? '#dc3545' : user && user.admin ? '#007bff' : user && user.subAdmin ? '#6f42c1' : '#e83e8c'; %>
+                    <p style="color: #6c757d; margin-bottom: 15px;">Added by: <span style="color: <%= roleColor %>; font-weight: bold;"><%= violation.addedBy %></span></p>
+                <% } %>
                 <% if (currentPunishment && currentPunishment.length > 0) { %>
                     <p style="color: #dc3545; margin-bottom: 15px;">Current Punishments: <%= currentPunishment.map(p => p.punishment || p.text).join(', ') %></p>
                 <% } %>

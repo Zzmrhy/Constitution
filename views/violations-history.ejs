@@ -97,6 +97,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const history = window.violationsHistoryData || [];
     const currentViolations = window.currentViolationsData || [];
 
+    let filteredChart = null;
+
     // Helper to normalize any date-like value to YYYY-MM-DD
     function normalizeDateToYMD(d) {
         try {
@@ -156,15 +158,57 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // -------------------------
+    // Total Rules Broken Chart
+    // -------------------------
+    const totalRulesChartCanvas = document.getElementById('totalRulesChart');
+    if (totalRulesChartCanvas) {
+        const ctx = totalRulesChartCanvas.getContext('2d');
+        const totalRuleCounts = window.totalRuleCounts || {};
+
+        const sortedRules = Object.keys(totalRuleCounts).sort((a, b) => totalRuleCounts[b] - totalRuleCounts[a]); // Sort by count descending
+        const ruleCounts = sortedRules.map(rule => totalRuleCounts[rule]);
+
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: sortedRules,
+                datasets: [{
+                    label: 'Total Rules Broken',
+                    data: ruleCounts,
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Total Rules Broken Across All History'
+                    }
+                },
+                scales: {
+                    y: { beginAtZero: true, title: { display: true, text: 'Number of Times Broken' } },
+                    x: { title: { display: true, text: 'Rule Classifications' } }
+                }
+            }
+        });
+    }
+
+    // -------------------------
     // Previous Months Violations Chart
     // -------------------------
     const violationsChartCanvas = document.getElementById('violationsChart');
     if (violationsChartCanvas) {
         const ctx = violationsChartCanvas.getContext('2d');
 
+        // Use all history except the most recent entry (previous months)
+        const previousMonthsHistory = sortedHistory.slice(0, -1);
+
         // Aggregate violations by week (7-day intervals)
         const weeklyData = {};
-        sortedHistory.forEach(entry => {
+        previousMonthsHistory.forEach(entry => {
             if (entry.violations) {
                 entry.violations.forEach(v => {
                     const date = new Date(v.date);
@@ -260,28 +304,24 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // -------------------------
-    // Bottom chart: Fixed dates violations (2025-11-24, 2025-12-01, 2025-12-08)
+    // Previous Week Violations Chart
     // -------------------------
     const cumulativeChartCanvas = document.getElementById('cumulativeChart');
     if (cumulativeChartCanvas) {
         const ctx = cumulativeChartCanvas.getContext('2d');
 
-        // Fixed dates for previous week
-        const fixedDates = ['2026-01-05'];
+        // Use the most recent archived entry for previous week
+        const mostRecentEntry = sortedHistory[sortedHistory.length - 1];
         const prevDailyData = {};
-        fixedDates.forEach(date => prevDailyData[date] = 0);
 
-        sortedHistory.forEach(entry => {
-            if (entry.violations) {
-                entry.violations.forEach(v => {
-                    const dateKey = normalizeDateToYMD(v.date);
-                    if (fixedDates.includes(dateKey)) {
-                        prevDailyData[dateKey] += (Array.isArray(v.brokenRules) ? v.brokenRules.length : 1);
-                    }
-                });
-            }
-        });
-        const prevSortedDates = fixedDates;
+        if (mostRecentEntry && mostRecentEntry.violations) {
+            mostRecentEntry.violations.forEach(v => {
+                const dateKey = normalizeDateToYMD(v.date);
+                prevDailyData[dateKey] = (prevDailyData[dateKey] || 0) + (Array.isArray(v.brokenRules) ? v.brokenRules.length : 1);
+            });
+        }
+
+        const prevSortedDates = Object.keys(prevDailyData).sort();
         const prevDailyCounts = prevSortedDates.map(date => prevDailyData[date]);
 
         let chart = new Chart(ctx, {
@@ -321,6 +361,7 @@ document.addEventListener('DOMContentLoaded', function() {
         function showViolationsForWeek(weekKey) {
             const weeklyViolationsDetails = document.getElementById('weeklyViolationsDetails');
             const weeklyViolationsList = document.getElementById('weeklyViolationsList');
+            const filteredViolationsDiv = document.getElementById('filteredViolations');
 
             weeklyViolationsList.innerHTML = '';
 
@@ -438,6 +479,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const filteredTitle = document.getElementById('filteredTitle');
             const filteredList = document.getElementById('filteredList');
 
+            filteredViolationsDiv.style.display = 'block';
             filteredTitle.textContent = `Violations on ${dateKey} (Previous Week)`;
             filteredList.innerHTML = '';
 
@@ -475,8 +517,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
             const filteredViolationsChartCanvas = document.getElementById('filteredViolationsChart');
             if (filteredViolationsChartCanvas) {
-                const ctx = filteredViolationsChartCanvas.getContext('2d');
-                new Chart(ctx, {
+                const parent = filteredViolationsChartCanvas.parentElement;
+                const newCanvas = document.createElement('canvas');
+                newCanvas.id = 'filteredViolationsChart';
+                newCanvas.width = 400;
+                newCanvas.height = 200;
+                newCanvas.style.marginBottom = '20px';
+                parent.replaceChild(newCanvas, filteredViolationsChartCanvas);
+                const ctx = newCanvas.getContext('2d');
+                filteredChart = new Chart(ctx, {
                     type: 'bar',
                     data: {
                         labels: sortedRules,
@@ -567,5 +616,3 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-
-

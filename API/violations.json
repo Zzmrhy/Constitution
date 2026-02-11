@@ -1,25 +1,36 @@
 {
   "violations": [
     {
-      "date": "2026-01-13T17:41:45.323Z",
-      "text": "Ben said fish",
+      "date": "2026-02-11T18:23:02.773Z",
+      "text": "Ben meowed",
       "brokenRules": [
-        "ben may not say 'fish'"
-      ]
+        "No animal noises"
+      ],
+      "addedBy": "Unknown"
     },
     {
-      "date": "2026-01-13T17:42:34.256Z",
-      "text": "Ben is being funky",
+      "date": "2026-02-11T18:23:14.964Z",
+      "text": "Ben swore",
       "brokenRules": [
-        "No adult jokes"
-      ]
+        "No swear words"
+      ],
+      "addedBy": "Unknown"
     },
     {
-      "date": "2026-01-16T18:55:46.860Z",
-      "text": "Ben is wearing pajamas",
+      "date": "2026-02-11T18:23:27.219Z",
+      "text": "Ben touched me",
       "brokenRules": [
-        "No breaking school rules"
-      ]
+        "No touching people without consent"
+      ],
+      "addedBy": "Unknown"
+    },
+    {
+      "date": "2026-02-11T18:52:45.385Z",
+      "text": "He made german jokes",
+      "brokenRules": [
+        "No German"
+      ],
+      "addedBy": "Aiden Rathbun"
     }
   ]
 }

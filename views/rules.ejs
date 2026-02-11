@@ -23,11 +23,16 @@
         <% if (rules && rules.length > 0) { %>
             <% rules.forEach((rule, index) => { %>
                 <li style="background-color: white; margin-bottom: 10px; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); color: #495057;">
-                    <%= rule %>
+                    <%= typeof rule === 'string' ? rule : rule.text %>
+                    <% if (typeof rule !== 'string' && rule.addedBy) { %>
+                        <% const user = users.find(u => u.username === rule.addedBy); %>
+                        <% const roleColor = user && user.headAdmin ? '#dc3545' : user && user.admin ? '#007bff' : user && user.subAdmin ? '#6f42c1' : '#e83e8c'; %>
+                        <br><small style="color: #6c757d;">Added by: <span style="color: <%= roleColor %>; font-weight: bold;"><%= rule.addedBy %></span></small>
+                    <% } %>
                     <% if (isAdmin || isHeadAdmin) { %>
                         <form action="/api/rules" method="POST" style="display: inline-block; margin-left: 10px;">
                             <input type="hidden" name="_method" value="DELETE">
-                            <input type="hidden" name="rule" value="<%= rule %>">
+                            <input type="hidden" name="rule" value="<%= typeof rule === 'string' ? rule : rule.text %>">
                             <button id='btn' type="submit" style="background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Delete</button>
                         </form>
                     <% } %>
