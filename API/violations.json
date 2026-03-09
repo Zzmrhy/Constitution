@@ -1,34 +1,90 @@
 {
   "violations": [
     {
-      "date": "2026-02-11T18:23:02.773Z",
-      "text": "Ben meowed",
+      "date": "2026-03-09T16:30:40.804Z",
+      "text": "Ben blew a part blower",
       "brokenRules": [
-        "No animal noises"
+        "No using party blower"
       ],
-      "addedBy": "Unknown"
+      "addedBy": "Aiden Rathbun"
     },
     {
-      "date": "2026-02-11T18:23:14.964Z",
-      "text": "Ben swore",
+      "date": "2026-03-09T17:47:57.025Z",
+      "text": "Ben is on discord",
       "brokenRules": [
-        "No swear words"
+        "No more discord"
       ],
-      "addedBy": "Unknown"
+      "addedBy": "Aiden Rathbun"
     },
     {
-      "date": "2026-02-11T18:23:27.219Z",
-      "text": "Ben touched me",
+      "date": "2026-03-09T18:01:53.559Z",
+      "text": "BEN IS PLAYING A VIDEO ON DISCORD",
       "brokenRules": [
-        "No touching people without consent"
+        "No more discord"
       ],
-      "addedBy": "Unknown"
+      "addedBy": "Aiden Rathbun"
     },
     {
-      "date": "2026-02-11T18:52:45.385Z",
-      "text": "He made german jokes",
+      "date": "2026-03-09T18:04:35.206Z",
+      "text": "Ben got back on discord",
       "brokenRules": [
-        "No German"
+        "No more discord"
+      ],
+      "addedBy": "Aiden Rathbun"
+    },
+    {
+      "date": "2026-03-09T18:10:02.238Z",
+      "text": "He's back on didcord",
+      "brokenRules": [
+        "No more discord"
+      ],
+      "addedBy": "Aiden Rathbun"
+    },
+    {
+      "date": "2026-03-09T18:10:42.418Z",
+      "text": "He went on discord",
+      "brokenRules": [
+        "No more discord"
+      ],
+      "addedBy": "Aiden Rathbun"
+    },
+    {
+      "date": "2026-03-09T18:11:48.922Z",
+      "text": "Ben touched my lever",
+      "brokenRules": [
+        "Ben may not touch any levers of any kind"
+      ],
+      "addedBy": "Aiden Rathbun"
+    },
+    {
+      "date": "2026-03-09T18:13:17.289Z",
+      "text": "Ben is touching stuff",
+      "brokenRules": [
+        "Ben may not ben"
+      ],
+      "addedBy": "Aiden Rathbun"
+    },
+    {
+      "date": "2026-03-09T18:18:37.673Z",
+      "text": "Ben is looking at anime",
+      "brokenRules": [
+        "No anime or anime related activities"
+      ],
+      "addedBy": "Aiden Rathbun"
+    },
+    {
+      "date": "2026-03-09T18:20:00.345Z",
+      "text": "Ben is back on discord, AGAIN",
+      "brokenRules": [
+        "No more discord"
+      ],
+      "addedBy": "Aiden Rathbun"
+    },
+    {
+      "date": "2026-03-09T18:27:18.084Z",
+      "text": "Ben acted like a furry",
+      "brokenRules": [
+        "No being a furry"
       ],
       "addedBy": "Aiden Rathbun"
     }

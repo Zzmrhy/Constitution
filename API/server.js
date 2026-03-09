@@ -570,12 +570,24 @@ app.post('/api/head-admin-approvals/:id', (req, res) => {
 
     if (action === 'approve') {
         if (suggestion.type === 'rule') {
-            // Add rule
-            rules.push(suggestion.text);
+            // Add rule with addedBy and votedBy
+            const submitterUser = readAllUsers().find(u => u.Email === suggestion.submittedBy);
+            const submitterUsername = submitterUser ? submitterUser.username : 'Unknown';
+            const votedByUsernames = suggestion.votes.approve.map(email => {
+                const user = readAllUsers().find(u => u.Email === email);
+                return user ? user.username : email;
+            });
+            rules.push({ text: suggestion.text, addedBy: submitterUsername, votedBy: votedByUsernames });
             fs.writeFileSync('./rules.json', JSON.stringify({ rules: rules }, null, 2));
         } else if (suggestion.type === 'punishment') {
-            // Add punishment
-            punishments.push({ id: Date.now().toString(), punishment: suggestion.text, min: suggestion.min, max: suggestion.max });
+            // Add punishment with addedBy and votedBy
+            const submitterUser = readAllUsers().find(u => u.Email === suggestion.submittedBy);
+            const submitterUsername = submitterUser ? submitterUser.username : 'Unknown';
+            const votedByUsernames = suggestion.votes.approve.map(email => {
+                const user = readAllUsers().find(u => u.Email === email);
+                return user ? user.username : email;
+            });
+            punishments.push({ id: Date.now().toString(), punishment: suggestion.text, min: suggestion.min, max: suggestion.max, addedBy: submitterUsername, votedBy: votedByUsernames });
             fs.writeFileSync('./punishments.json', JSON.stringify({ punishments: punishments }, null, 2));
         }
         // Remove from pending approvals

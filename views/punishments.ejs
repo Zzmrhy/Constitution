@@ -13,7 +13,15 @@
           Min Violations: <%= punishment.min %>, Max Violations: <%= punishment.max === null ? 'No limit' : punishment.max %>
         </small>
         <span class="punishment-text" style="padding: 5px; margin-top: 5px; display: inline-block; width: 100%; white-space: normal;"><%= punishment.text || 'No punishment text set' %></span>
-        
+        <% if (punishment.addedBy) { %>
+            <% const user = users.find(u => u.username === punishment.addedBy); %>
+            <% const roleColor = user && user.headAdmin ? '#dc3545' : user && user.admin ? '#007bff' : user && user.subAdmin ? '#6f42c1' : '#e83e8c'; %>
+            <br><small style="color: #6c757d;">Added by: <span style="color: <%= roleColor %>; font-weight: bold;"><%= punishment.addedBy %></span></small>
+            <% if (punishment.votedBy && punishment.votedBy.length > 0) { %>
+                <br><small style="color: #6c757d;">Voted on by: <% punishment.votedBy.forEach((voter, index) => { const voterUser = users.find(u => u.username === voter); const voterColor = voterUser && voterUser.headAdmin ? '#dc3545' : voterUser && voterUser.admin ? '#007bff' : voterUser && voterUser.subAdmin ? '#6f42c1' : '#e83e8c'; %><span style="color: <%= voterColor %>; font-weight: bold;"><%= voter %></span><% if (index < punishment.votedBy.length - 1) { %>, <% } %><% }); %></small>
+            <% } %>
+        <% } %>
+
         <% if (isHeadAdmin) { %>
         <div style="margin-top: 8px;">
           <button class="edit-punishment-btn" data-id="<%= punishment.id %>" style="margin-right: 10px;">Edit</button>

@@ -7,10 +7,13 @@
             <h3 style="color: #495057; margin-bottom: 20px;">Add a Violation</h3>
             <form id="violation-form">
                 <textarea id="violation-text" placeholder="Describe the violation..." rows="4" style="width: 100%; padding: 15px; border: 1px solid #ced4da; border-radius: 4px; resize: vertical; margin-bottom: 15px;"></textarea>
+                <label for="violation-rule-search" style="display: block; margin-bottom: 10px; color: #495057;">Search Broken Rule(s):</label>
+                <input type="text" id="violation-rule-search" placeholder="Search for a rule (e.g., 'discord', 'lever')..." 
+                    style="width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 4px; margin-bottom: 10px; font-size: 14px;">
                 <label for="violation-rule" style="display: block; margin-bottom: 10px; color: #495057;">Select Broken Rule(s):</label>
                 <select id="violation-rule" multiple style="width: 100%; padding: 15px; border: 1px solid #ced4da; border-radius: 4px; margin-bottom: 15px; height: 120px;">
                     <% rules.forEach(rule => { %>
-                        <option value="<%= typeof rule === 'string' ? rule : rule.text %>"><%= typeof rule === 'string' ? rule : rule.text %></option>
+                        <option class="rule-option" value="<%= typeof rule === 'string' ? rule : rule.text %>" data-rule-text="<%= (typeof rule === 'string' ? rule : rule.text).toLowerCase() %>"><%= typeof rule === 'string' ? rule : rule.text %></option>
                     <% }); %>
                 </select>
                 <button type="submit" id='btn' style="background-color: #007bff; color: white; border: none; padding: 12px 25px; border-radius: 4px; cursor: pointer;">Add Violation</button>
@@ -31,10 +34,28 @@
         return date.toLocaleString();
     }
 </script>
+
+    <!-- Search functionality for violations -->
+    <div style="background-color: white; border: 1px solid #dee2e6; padding: 20px; margin-bottom: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h3 style="color: #495057; margin-bottom: 15px;">Search Broken Rules</h3>
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <input type="text" id="rule-search-input" placeholder="Search by broken rule (e.g., 'discord', 'levers')..." 
+                style="flex: 1; min-width: 200px; padding: 12px; border: 1px solid #ced4da; border-radius: 4px; font-size: 14px;">
+            <button type="button" id="clear-search-btn" 
+                style="background-color: #6c757d; color: white; border: none; padding: 12px 20px; border-radius: 4px; cursor: pointer;">
+                Clear
+            </button>
+        </div>
+        <p style="color: #6c757d; margin-top: 10px; margin-bottom: 0; font-size: 13px;">
+            Tip: Search for a rule name to find all violations for that rule
+        </p>
+    </div>
+
     <!-- Display violations -->
+    <div id="violations-container">
     <% if (violations && violations.length > 0) { %>
         <% violations.forEach((violation, index) => { %>
-            <div style="background-color: white; border: 1px solid #dee2e6; padding: 25px; margin-bottom: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+            <div class="violation-card" data-broken-rules="<%= violation.brokenRules.join(',').toLowerCase() %>" style="background-color: white; border: 1px solid #dee2e6; padding: 25px; margin-bottom: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                 <h3 style="color: #495057; margin-bottom: 15px;"><%= violation.text %></h3>
                 <p style="color: #6c757d; margin-bottom: 10px;">Classification: <%= violation.brokenRules.join(', ') %></p>
                 <p style="color: #6c757d; margin-bottom: 15px;">Date: <%= new Date(violation.date).toLocaleString() %></p>
@@ -57,7 +78,7 @@
     <% } else { %>
         <h1 style="text-align: center; color: #6c757d; margin-top: 40px;">No violations yet</h1>
     <% } %>
-</div>
+    </div>
 
 <script>
     // Handle violation submission
@@ -96,6 +117,25 @@
                 document.getElementById('violation-error').style.display = 'block';
             }
         });
+
+        // Search/filter functionality for rule selection dropdown
+        const ruleSearchInput = document.getElementById('violation-rule-search');
+        const ruleSelect = document.getElementById('violation-rule');
+        const ruleOptions = ruleSelect.querySelectorAll('.rule-option');
+
+        if (ruleSearchInput && ruleOptions.length > 0) {
+            ruleSearchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                ruleOptions.forEach(option => {
+                    const ruleText = option.getAttribute('data-rule-text') || '';
+                    if (searchTerm === '' || ruleText.includes(searchTerm)) {
+                        option.style.display = '';
+                    } else {
+                        option.style.display = 'none';
+                    }
+                });
+            });
+        }
     }
 
     // Handle deletion
@@ -118,5 +158,57 @@
             }
         });
     });
+
+    // Search functionality for violations by broken rules
+    const searchInput = document.getElementById('rule-search-input');
+    const clearSearchBtn = document.getElementById('clear-search-btn');
+    const violationCards = document.querySelectorAll('.violation-card');
+    const violationsContainer = document.getElementById('violations-container');
+
+    if (searchInput && violationCards.length > 0) {
+        // Function to filter violations based on search query
+        function filterViolations(searchTerm) {
+            const term = searchTerm.toLowerCase().trim();
+            let visibleCount = 0;
+            
+            violationCards.forEach(card => {
+                const brokenRules = card.getAttribute('data-broken-rules') || '';
+                if (term === '' || brokenRules.includes(term)) {
+                    card.style.display = '';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            // Show/hide "no results" message
+            let noResultsMsg = document.getElementById('no-results-message');
+            if (visibleCount === 0 && term !== '') {
+                if (!noResultsMsg) {
+                    noResultsMsg = document.createElement('div');
+                    noResultsMsg.id = 'no-results-message';
+                    noResultsMsg.style.cssText = 'text-align: center; color: #6c757d; padding: 40px; background-color: white; border: 1px solid #dee2e6; border-radius: 8px; margin-bottom: 25px;';
+                    noResultsMsg.innerHTML = '<h3 style="color: #6c757d;">No violations found</h3><p style="color: #6c757d;">Try a different search term</p>';
+                    violationsContainer.insertBefore(noResultsMsg, violationsContainer.firstChild);
+                }
+                noResultsMsg.style.display = '';
+            } else if (noResultsMsg) {
+                noResultsMsg.style.display = 'none';
+            }
+        }
+
+        // Search input event listener
+        searchInput.addEventListener('input', (e) => {
+            filterViolations(e.target.value);
+        });
+
+        // Clear search button event listener
+        if (clearSearchBtn) {
+            clearSearchBtn.addEventListener('click', () => {
+                searchInput.value = '';
+                filterViolations('');
+            });
+        }
+    }
 
 </script>

@@ -43,7 +43,7 @@
                 </div>
             <% } else { %>
                 <div style="padding: 12px;">
-                    <span class="welcome-span">Welcome, <%= user.username %></span>
+                    <span class="welcome-span" style="color: <%= user.headAdmin ? '#dc3545' : user.admin ? '#007bff' : user.subAdmin ? '#6f42c1' : '#e83e8c' %>;">Welcome, <%= user.username %></span>
                 </div>
             <% } %>
 

@@ -700,5 +700,148 @@
         ]
       }
     ]
+  },
+  {
+    "archivedAt": 1771527386422,
+    "periodStart": 1770834032593,
+    "violations": [
+      {
+        "date": "2026-02-11T18:23:02.773Z",
+        "text": "Ben meowed",
+        "brokenRules": [
+          "No animal noises"
+        ],
+        "addedBy": "Unknown"
+      },
+      {
+        "date": "2026-02-11T18:23:14.964Z",
+        "text": "Ben swore",
+        "brokenRules": [
+          "No swear words"
+        ],
+        "addedBy": "Unknown"
+      },
+      {
+        "date": "2026-02-11T18:23:27.219Z",
+        "text": "Ben touched me",
+        "brokenRules": [
+          "No touching people without consent"
+        ],
+        "addedBy": "Unknown"
+      },
+      {
+        "date": "2026-02-11T18:52:45.385Z",
+        "text": "He made german jokes",
+        "brokenRules": [
+          "No German"
+        ],
+        "addedBy": "Aiden Rathbun"
+      },
+      {
+        "date": "2026-02-12T17:45:16.382Z",
+        "text": "Ben spoke a language",
+        "brokenRules": [
+          "Ben may not speak any foreign languages (including latin and any other languages)"
+        ],
+        "addedBy": "Aiden Rathbun"
+      },
+      {
+        "date": "2026-02-12T17:49:09.299Z",
+        "text": "Ben touched Matt without consent",
+        "brokenRules": [
+          "No touching people without consent"
+        ],
+        "addedBy": "Aiden Rathbun"
+      },
+      {
+        "date": "2026-02-12T18:43:45.456Z",
+        "text": "Ben is on discord",
+        "brokenRules": [
+          "No more discord"
+        ],
+        "addedBy": "Aiden Rathbun"
+      },
+      {
+        "date": "2026-02-12T18:44:31.526Z",
+        "text": "Ben talked to people on discord",
+        "brokenRules": [
+          "No more discord"
+        ],
+        "addedBy": "Aiden Rathbun"
+      }
+    ]
+  },
+  {
+    "archivedAt": 1771867392479,
+    "periodStart": 1771527386422,
+    "violations": []
+  },
+  {
+    "archivedAt": 1772559673651,
+    "periodStart": 1771867392479,
+    "violations": [
+      {
+        "date": "2026-02-23T17:23:49.259Z",
+        "text": "Ben sang a song",
+        "brokenRules": [
+          "No singing"
+        ],
+        "addedBy": "Aiden Rathbun"
+      },
+      {
+        "date": "2026-02-24T18:41:28.533Z",
+        "text": "Ben is using an OSINT program to spy on people",
+        "brokenRules": [
+          "BEN MAY NOT USE OSINT WHATSOEVER (INCLUDING A PROGRAM OF IT)"
+        ],
+        "addedBy": "Aiden Rathbun"
+      },
+      {
+        "date": "2026-02-24T18:44:57.878Z",
+        "text": "Ben is being Ben",
+        "brokenRules": [
+          "Ben may not ben"
+        ],
+        "addedBy": "Aiden Rathbun"
+      },
+      {
+        "date": "2026-02-26T19:14:29.389Z",
+        "text": "Ben rubbed my arm",
+        "brokenRules": [
+          "No touching people without consent"
+        ],
+        "addedBy": "Aiden Rathbun"
+      }
+    ]
+  },
+  {
+    "archivedAt": 1773073625424,
+    "periodStart": 1772559673651,
+    "violations": [
+      {
+        "date": "2026-03-03T17:41:50.979Z",
+        "text": "Ben has been playing games outside of break",
+        "brokenRules": [
+          "No computer games"
+        ],
+        "addedBy": "Aiden Rathbun"
+      },
+      {
+        "date": "2026-03-03T17:42:57.586Z",
+        "text": "Ben played soundboards before we left yesterday",
+        "brokenRules": [
+          "No sound boards"
+        ],
+        "addedBy": "Aiden Rathbun"
+      },
+      {
+        "date": "2026-03-05T19:02:10.540Z",
+        "text": "Ben touched the lever on my chair",
+        "brokenRules": [
+          "Ben may not touch any levers of any kind"
+        ],
+        "addedBy": "Aiden Rathbun"
+      }
+    ]
   }
 ]
