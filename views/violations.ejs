@@ -6,10 +6,10 @@
         <div style="background-color: white; border: 1px solid #dee2e6; padding: 25px; margin-bottom: 40px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
             <h3 style="color: #495057; margin-bottom: 20px;">Add a Violation</h3>
             <form id="violation-form">
-                <textarea id="violation-text" placeholder="Describe the violation..." rows="4" style="width: 100%; padding: 15px; border: 1px solid #ced4da; border-radius: 4px; resize: vertical; margin-bottom: 15px;"></textarea>
+                <textarea id="violation-text" placeholder="Describe the violation..." rows="3" style="width: 100%; padding: 10px; border: 1px solid #ced4da; border-radius: 4px; resize: vertical; margin-bottom: 10px; box-sizing: border-box;"></textarea>
                 <label for="violation-rule-search" style="display: block; margin-bottom: 10px; color: #495057;">Search Broken Rule(s):</label>
                 <input type="text" id="violation-rule-search" placeholder="Search for a rule (e.g., 'discord', 'lever')..." 
-                    style="width: 100%; padding: 12px; border: 1px solid #ced4da; border-radius: 4px; margin-bottom: 10px; font-size: 14px;">
+                    style="width: 97%; padding: 12px; border: 1px solid #ced4da; border-radius: 4px; margin-bottom: 10px; font-size: 14px;">
                 <label for="violation-rule" style="display: block; margin-bottom: 10px; color: #495057;">Select Broken Rule(s):</label>
                 <select id="violation-rule" multiple style="width: 100%; padding: 15px; border: 1px solid #ced4da; border-radius: 4px; margin-bottom: 15px; height: 120px;">
                     <% rules.forEach(rule => { %>
